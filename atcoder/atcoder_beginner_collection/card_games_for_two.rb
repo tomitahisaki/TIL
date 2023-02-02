@@ -14,3 +14,31 @@ n.times do |i|
 end
 
 puts arr_alice.sum - arr_bob.sum
+
+
+# N = gets.to_i
+# numbers= gets.split(" ").map(&:to_i).sort.reverse
+# alice = []
+# bob = []
+# N.times do |x|
+#   if x.odd? 
+#     bob << numbers[x]
+#   else
+#     alice << numbers[x]
+#   end
+# end
+# p score = alice.sum - bob.sum
+
+# inputs = readlines
+ 
+# arr = inputs[1].split(' ').map(&:to_i).sort.reverse
+# even_sum = odd_sum = 0
+# arr.each_with_index do |v, i|
+#   if i%2 == 0
+#     even_sum += v
+#   else
+#     odd_sum += v
+#   end
+# end
+ 
+# p even_sum - odd_sum
