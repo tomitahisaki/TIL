@@ -7,8 +7,7 @@
 # set = array.each_slice(m).map{|i| i}
 # set_res = []
 # k.times do |i|
-#   set[i], set[-i-1] = set[-i-1], set[i]
-#   set_res << set
+#   set.reverse.z
 # end
 # p set_res
 
