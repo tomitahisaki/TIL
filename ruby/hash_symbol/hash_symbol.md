@@ -127,3 +127,22 @@ key? include? member? はhas_key?のエイリアスメソッドとになる。
 ```ruby
 foods.has_key?(:drink) =>  true
 ```
+文字列とシンボルで扱えるメソッドもある
+
+引数にどちらの型も渡すことができる
+
+```ruby
+"melon".respond_to?("include?") => true
+:melon.respond_to?(:include?) => true
+```
+
+### %記法でシンボルを作成
+
+記法でも作ることができる
+
+```ruby
+%s!i am man! => :"i am man"
+%s(i am man) => :"i am man"
+
+%i(chips choco candy) => [:chips, :choco, :candy]
+```
