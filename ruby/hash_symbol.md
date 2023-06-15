@@ -1,5 +1,4 @@
 # symbol と hash
-
 # シンボルの特徴
 
 - 任意の文字列と1対1に対応するオブジェクト
@@ -92,4 +91,39 @@ buy_meal("ramen", true, true)
 buy_meal("katsudon", false, true)
 ```
 
-最適例
+### 最適例
+
+```ruby
+# キーワード引数としてシンボルを使う　デフォルトでtrueとしている
+def buy_meal(menu, salad: true, drink: true)
+end
+
+buy_meal("ramen", salad: true, drink: true)
+buy_meal("katdsudon", salad: true, drink: false)
+
+# デフォルト値を使うので指定しなくても良い
+buy_meal("ramen", drink: false)
+# どちらもtrueをつかうので、デフォルトを使うので指定しない
+buy_meal("katsudon") 
+```
+
+## メソッド
+
+### keys values
+
+```ruby
+foods = { drink: "coke", meal: "fried rice", side: "salad" }
+foods.values = ["coke", "fried rice", "salad"]
+
+foods.keys = [ :drink, :meal, :side ] 
+```
+
+### has_key? / key? / include? / member?
+
+指定された値が存在しているか確認するメソッド
+
+key? include? member? はhas_key?のエイリアスメソッドとになる。
+
+```ruby
+foods.has_key?(:drink) =>  true
+```
