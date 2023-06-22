@@ -8,8 +8,6 @@ class ConvertHashSyntax < Minitest::Test
         :name => 'Alice',
         :age => 20,
         :gender => :female
-        test
-        test
       }
     TEXT
     expected = <<~TEXT
