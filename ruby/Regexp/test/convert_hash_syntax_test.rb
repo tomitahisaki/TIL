@@ -5,20 +5,21 @@ class ConvertHashSyntax < Minitest::Test
   def test_convert_hash_syntax
     old_syntax = <<~TEXT
       {
-        :name => 'Alice',
-        :age => 20,
-        :gender => :female
-        test
-        test
+        :name => 'John',
+        :age=>40,
+        :gender => :male
       }
     TEXT
     expected = <<~TEXT
       {
-        name: 'Alice',
-        age: 20,
-        gender: :female
+        name: 'John',
+        age: 40,
+        gender: :male
       }
     TEXT
+      # actual = convert_hash_syntax(old_syntax)
+      # puts actual
+      # assert_equal expected, actual
     assert_equal expected , convert_hash_syntax(old_syntax)
   end
 end
