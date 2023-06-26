@@ -900,3 +900,93 @@ def test_juso_to_mikuni
 	assert @mikuni.exit(ticket)
 end
 ```
+# selfキーワード
+
+### アクセサメソッドを使うとき
+
+アクセサメソッドを呼び出すときには、必要！
+
+今回はセッターメソッドを呼び出す時は、selfをつけないと呼び出せない。
+
+```ruby
+class User
+  attr_accessor :name
+
+  def initialize
+    @name = name
+  end
+
+  # selfなしで、nameメソッド=を呼ぶ
+  def rename_to_taro
+    name = "taro"
+  end
+
+  # self付きで、name=メソッドを呼ぶ
+  def rename_to_saburo
+    self.name = "saburo"
+  end
+
+  # インスタンス変数を直接書き換える
+  def rename_to_shiro
+    @name = "shiro"
+  end
+end
+
+user = User.new("gon")
+
+$ user.rename_to_saburo
+=> user.name = "saburo"
+
+$ user.rename_to_shiro
+=> user.name = "saburo"
+
+# セッターメソッドの呼び出しができていないので、書き換えられない
+$ user.rename_to_taro
+=> user.name = "gon"
+```
+
+## クラスメソッドを使うとき
+
+使う位置によって、selfの意味が異なるので注意
+
+```ruby
+class User
+	puts "クラス直下のselfキーワード #{self}"
+
+	def self.class_method
+		"クラスメソッド内のselfキーワード "#{self}"
+	end
+
+	def instance_method
+		"インスタンスメソッド内のselfキーワード "#{self}"
+	end
+end
+```
+
+## クラスメソッドをインスタンスメソッドで呼ぶ
+
+`クラス名.メソッド` でクラスメソッドを呼ぶ
+
+```ruby
+class Product
+  attr_reader :grocery,
+              :price
+
+  def initialize(grocery, price)
+    @grocery = grocery
+    @price = price
+  end
+
+  # 金額を出力するメソッド
+  def self.format_price(price)
+    "$#{price}"
+  end
+
+  def to_s
+		# クラスメソッドをインスタンスメソッド内で呼び出している。
+    # self.class.format_price(price)という書き方でも良い
+    format_price = Product.format_price(price)
+    "grocery: #{grocery}, price: #{format_price}"
+  end
+end
+```
