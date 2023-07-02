@@ -488,3 +488,389 @@ def currency_of(country)
 	end
 end
 ```
+## チェッカーのプログラムを作る
+
+### 仕様
+
+- ターミナルでの対話式プログラム
+- Text?と聞かれ、正規表現の確認でつかうテキスト入力が求められる
+- テキスト入力後、Pattern?と聞かれる　正規表現で使うパターン入力が求められる
+- 正規表現として、無効な文字列の場合は、Invalid patternとされる　さらに、エラーが表示される
+- 正規表現入力後、 matchedが出力され、マッチされた文字列がカンマ区切りになる
+- 1つもマッチしない場合は、nothing matchedになる
+
+### 作り方
+
+- テスト駆動開発
+- フローチャートを考える
+
+テストを先に書きながら考える開発。求められる値を決めて、実装していく
+
+→結構難しいかもしれない。実装と並行して進めていくのもあり。
+
+### 実装
+
+まずは、プログラミングの実装
+
+```ruby
+print "Text?: "
+text = gets.chomp
+print "Pattern?: "
+pattern = gets.chomp
+
+regexp = Regexp.new(pattern)
+matches = text.scan(regexp)
+if matches.size > 0
+  puts "Matched: #{matches.join(", ")}"
+else
+ puts "Nothing matched"
+end
+```
+
+ここに例外処理を入れる
+
+今回の実装では、間違ったパターンの場合に例外処理を通して再度やり直す形式とする
+
+```ruby
+print "Text?: "
+text = get.chomp
+
+begin
+	print "Pattern?: "
+	pattern = gets.chomp
+	regexp = Regexp.new(pattern)
+rescue RegexpError => e
+	puts "Invalid pattern: #{e.message}"
+	retry
+end
+```
+
+```ruby
+print "Text?: "
+text = gets.chomp
+
+begin
+	print "Pattern?: "
+	pattern = gets.chomp
+	regexp = Regexp.new(pattern)
+rescue RegexpError => e
+	puts "Invalid pattern: #{e.message}"
+	retry
+end
+
+matches = text.scan(regexp)
+if matches.size > 0
+  puts "Matched: #{matches.join(', ')}"
+else
+  puts "Nothing matched"
+end
+```
+
+## 例外処理にもっと詳しく
+
+### ensureを使う
+
+例外処理の場合に、例外が発生しなくても必ず実行したい処理がでてくる
+
+例外処理に`ensure` をいれることで必ず実行する処理を書ける
+
+```ruby
+file = File.open('some.txt', 'w')
+
+begin
+	file <<'hello'
+ensure
+	file.close
+end
+
+```
+
+Rubyの場合は、ブロック処理を行えば`ensure` はいらない
+
+下記のように、意図的な例外を発生させても処理はクローズ処理までやってくれる
+
+```ruby
+File.opne('some.txt', 'w') do |file|
+	file < 'hello'
+	# 例外の発生
+　1/0
+end
+
+# 例外発生するものの、openメソッドによって、クローズ自体は実行される
+# ZerroDivisionErrorも発生はする
+```
+
+### elseを使う
+
+Rubyの例外処理では、例外が発生しなかった場合に実行する`else`書く事ができる
+
+```ruby
+begin 
+	puts 'hello'
+rescue
+	puts '例外の発生'
+else
+	puts '例外は発生しない'
+end
+```
+
+**********************************************************************************************************************************elseで実行されたコードでエラー起きても、rescueで捕捉されない**********************************************************************************************************************************
+
+ただし、あまり使わない
+
+beginの処理に追加して、else部分の結果を出力できるから
+
+```ruby
+# else部分をbeginに入れても同じ意味
+begin
+	puts 'hello'
+	puts '例外は発生しない'
+rescue
+	puts '例外は発生しない'
+end
+```
+
+## 例外処理の戻り値
+
+```ruby
+# 正常に終了した場合
+ret = begin
+        'OK'
+      rescue
+        'error'
+      ensure
+        'ensure'
+      end
+# ret => OK
+
+# 例外が発生した場合
+ret = begin
+        1/0
+      rescue
+        'error'
+      ensure
+        'ensure'
+      end
+# ret => error
+```
+
+上記の書き方はメソッドにまとめても良い
+
+```ruby
+def some_method(n)
+	begin 
+		1/n
+	# 省略
+end
+
+some_method(1) => OK
+some_method(0) => error
+```
+
+## begin/endを省略できるrescue
+
+rescueを修飾子として使うことも可能
+
+```ruby
+# 例外が発生しそうな処理 rescue 例外発生時の戻り値
+1/1 rescue 0 => 1
+1/0 rescue 0 => 0
+```
+
+実際のメソッドを使ってみる
+
+```ruby
+require 'date'
+
+def to_date(string)
+  begin
+    Date.parse(string)
+  rescue ArgumentError
+    "パースできない"
+  end
+end
+
+# p to_date('2023-7-2')　=> #<Date: 2023-07-02 ((2460128j,0s,0n),+0s,2299161j)>
+# p to_date('abcdef') => パースできない
+```
+
+begin/endをrescueに返る
+
+メソッドを短くすることはできる
+
+**ただし、Standardとそのサブクラスのみとなるので、`begin/end`を使うほうが良い**
+
+```ruby
+require 'date'
+
+def to_date(string)
+	Date.parse(string) rescue 'パースできない'
+end
+```
+
+### 省略できるケース
+
+メソッドの最初から最後までが`begin/end`で囲まれる場合は、省略したほうが可読性があがる
+
+fizz_buzzをつかう
+
+begin内がメソッドの処理で冗長になっている
+
+```ruby
+def fizz_buzz(n)
+  begin
+    if n % 15 == 0
+      'fizzbuzz'
+    elsif n % 5 == 0
+      'fizz'
+    elsif n % 3 == 0
+      'buzz'
+    else
+      n.to_s
+    end
+  rescue => e
+    puts "#{e.class} #{e.message}"
+  end
+end
+```
+
+begin/endを省略して、見やすくする
+
+インデントと行数が減るので良い
+
+```ruby
+def fizz_buzz(n)
+    if n % 15 == 0
+      'fizzbuzz'
+    elsif n % 5 == 0
+      'fizz'
+    elsif n % 3 == 0
+      'buzz'
+    else
+      n.to_s
+    end
+  rescue => e
+    puts "#{e.class} #{e.message}"
+  end
+end
+```
+
+### $! $@に格納される例外情報
+
+```ruby
+begin
+  1/0
+rescue => 
+  puts "#{e.class}  #{e.message}"
+  puts e.backtrace
+end
+```
+
+変数を使えば、書き換えられる
+
+ただし、可読性の観点から良くないかも
+
+```ruby
+begin
+  1/0
+rescue => e
+  puts "#{$!.class} #{$!.message}"
+  puts $@
+end
+```
+
+## 例外処理で例外を発生(二重)
+
+例外処理で、下記のようなミスをすると、予想外の例外を発生させてしまう
+
+ホントは、`ZeroDivisionError` を捕捉する予定ですが、
+
+typoによって、`NoMethodError` が発生して、本来のエラーの手がかりとはかけ離れた例外となる
+
+→デバッグできなくなる
+
+```ruby
+def some_method
+	1/0
+recue => e
+	# typo
+	puts "error #{e.class} #{e.mesage}"
+	puts e.backtrace
+end
+
+=> NoMethodError # 望まない例外
+=> ZeroDivisionError # 望む例外
+```
+
+万が一のために、`cause` をつかう
+
+→**ただし、基本的にこのメソッドを埋め込むのは面倒なので、バグを入れないように例外処理を書くようにすることが重要**
+
+```ruby
+def some_method
+ 省略
+end
+
+begin 
+  some_method
+rescue => e
+	puts "error #{e.class} #{e.mesage}"
+	puts e.backtrace
+	# 元の例外を取得
+	origin = e.cause
+	unless origin.nil?
+		puts "origin_error #{origin.class} #{origin.message}"
+		puts origin.backtrace
+	end
+end
+```
+
+## rescueした例外をログやメールにする
+
+```ruby
+def some_method
+	省略
+rescue => e
+	# 発生した例外をなにかに残す(今回 putsにしている)
+	puts "[LOG] error: #{e.class} #{e.message}"
+	# 例外を再度発生させて、プログラムを終了させる
+	raise 
+end
+```
+
+## 独自の例外クラスを定義
+
+Standardクラスなどを継承した、独自の例外クラスを定義可能
+
+```ruby
+class NoCountryError < StandardError
+	# 独自のメソッドや属性も作れる
+	attr_reader :country
+	
+	def initialize(message, country)
+		@country = country
+		super("#{message} #{country}")
+	end
+end
+
+def currency_of(country)
+	case country
+	when :japan
+		"yen
+	when :spain
+		"euro"
+	when :us
+		"dollar"
+	else
+		raise NoCountryError.new('無効な国名', country)
+	end
+end
+
+begin
+	currency_of(:italy)
+rescue => e
+	puts e.message
+	puts e.country
+end
+=> 無効な国名 italy
+```
