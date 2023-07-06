@@ -54,11 +54,12 @@ end
   puts n
 end
 ```
-## 8, 10, 16進数
+## 2, 8, 10, 16進数
 ```
 hex # 16進数表記, 0xから始まる, 0~F
-oct # 8進数表記, 0から始まる, 0~7
-to_i # 10進数表記, 0~9
+oct # 8進数表記, 0o,0から始まる, 0~7
+to_i # 10進数表記, 0dからはじまる, 0~9 
+to_i(2) # 2進数表記 0bから始まる, 0~1
 ```
 
 ## partition
@@ -99,6 +100,8 @@ keyとvalueを入れ替えるメソッド
 `clear`	ハッシュの中身を空にします。
 
 ## injectメソッド
+[公式](https://docs.ruby-lang.org/ja/latest/method/Enumerable/i/inject.html)
+
 ブロックを使用し、繰り返し計算をする
 
 引数指定しないと、要素1が初期値となる
@@ -144,10 +147,13 @@ a.eql? b => true # 同一文字列なのでtrue
 
 ## delete
 引数に指定した文字を削除する
+
 `^`がつくと、指定した文字以外を削除する
 
 ## Proc
-Procオブジェクト current変数は共有されない
+Procオブジェクト 
+
+下記の場合にcurrent変数は共有されない
 ```
 def hoge(step = 1)
   current = 0
@@ -168,3 +174,211 @@ p2.call
 p p2.call
 => 6
 ```
+
+## to_a
+stringに`to_a`メソッドはない
+
+下記のように調べられる
+```
+オブジェクト.method_defined?(:メソッド)
+```
+
+## index
+[公式](https://docs.ruby-lang.org/ja/latest/method/String/i/index.html)
+
+`index(pattern, pos = 0)`
+
+左から posに向かってpatternを検索する
+
+最初に見つかった文字列の左端のインデックスを返す
+
+pattern: 文字列もしくは正規表現
+
+pos: 負の数だと文字列末尾から検索
+
+## abs
+絶対値を返す
+
+## succ
+次の整数を返す
+
+nextと同じ
+
+```
+0.succ => 1
+"aa".suc => "ab"
+"1.9.9".succ => 2.0.0
+```
+
+## 論理演算子
+`||` `&&`の演算子について
+
+左辺で評価が決まる場合は、右辺を考慮しない
+
+`||`なら、左辺がtrueなら処理が終わる
+
+`&&`なら、左辺がfalseなら処理が終わる
+```
+1 || nil => 右辺は評価していない
+nil && 1 => 右辺は評価しない
+```
+
+## 演算子
+`|` は、集合の和演算
+
+`&` は、積演算
+
+```
+a = [-1, 2, 3, 4, 5]
+b = [4, 5, 6]
+
+(a | b) => [-1, 2, 3, 4, 5, 6]
+(a & b) => [4, 5]
+
+(a || b) => a
+(a && b) => b
+```
+
+## strftime
+[strftimeメソッド](https://docs.ruby-lang.org/ja/latest/method/Time/i/strftime.html)
+
+引数のフォーマット文字列を日付で返す
+
+フォーマットの文字列によって、意味が異なるので注意
+
+大文字小文字でも異なる
+
+## flatten
+平坦化するメソッド "！"感嘆符は破壊的かどうか
+
+ｎ次元配列を1次元配列に返す
+
+平坦化されない場合は、nilを返す
+
+## delete delete_if reject
+`delete`は引数で渡された値と等しい要素を`self`から取り除く
+
+`delete_if`は1要素ずつブロックに渡して、結果が真の要素を取り除く
+
+`delete_if`は`reject!`と同じ意味を持つ
+
+```
+a = [1, 2, 3, 4, 5]
+a.delete_if{|n| n % 2 == 0} # a.reject{|n| n % 2 == 0}
+puts a => [1, 3, 5]
+
+a.delete(2)
+puts a => [1, 3, 4, 5]
+```
+
+## scan
+レシーバ(オブジェクト)に対して、引数で指定したパターンにマッチした部分文字列を配列で返す
+
+ ```
+str = "aaabbcccddd"
+p str.scan("c")
+
+=> ["c", "c", "c"]
+ ```
+
+ ## shift unshift push pop
+`shift` 先頭から1要素を破壊的に取り出す
+
+`unshift` 先頭に1要素を破壊的に追加する
+
+`push` 末尾に1要素を破壊的に追加する
+
+`pop` 末尾から1要素を破壊的に取り出す
+
+## == eql? equal?
+`==` Fixnumにあるメソッド 数値として等しいかどうか
+
+`eql?` Numericクラスのメソッド 同じクラス && 数値 が等しいかどうか
+
+`equal?` BasicObjectクラス オブジェクトIDが正しいかどうか
+
+イミュータブルオブジェクトは常に同じIDとなる
+
+## each_with_index
+レシーバに指定されたオブジェクトの要素とインデックスを繰り返しブロックに渡す
+```
+[1,2,3].each_with_index do |value, index|
+  puts "#{index} #{value"}
+end
+
+=>0 1
+=>1 2
+=>2 3
+```
+
+## IOクラス
+IOクラスは、基本的な入出力機能のためのクラス [公式ガイド](https://docs.ruby-lang.org/ja/latest/class/IO.html)
+
+`eof`はファイル終端になると、trueを返す
+
+`readlines` ファイルすべてを読み込む ``その各行を要素としてもつ配列を返す``
+
+`write` 第1引数で指定したファイルを開き、第2引数に指定した文字列の書き込みを行ったファイルを閉じる。第3引数で書き込み位置を指定できる
+
+`seek'(offset, whence)` ポインタを`whence`から`offset`に移動する
+
+`IO::SEEK_CUR` 現在のポインタ位置
+
+```
+io = File.open('list.txt') # ファイルを開いてio変数に代入する
+
+while not io.eof? #  notで条件を反転 io.eof?がtrueじゃない限り 続ける
+  io.readlines # 全部読み込み後に、ポインタは終端にある
+  io.seek(0, IO::SEEK_CUR) # 現在の位置から0文字移動する
+  p io.readlines # 最終行の要素を配列として返す
+end
+```
+
+## 区切り文字
+区切り文字は正規表現とは違うので注意
+```
+str = "1;2:3;4"
+p str.split(";|:")
+=> ["1;2:3;4"]
+
+p str.split(/;|:/)
+=> [1,2,3,4]
+```
+
+## compact
+配列から、nilを取り除くメソッド
+```
+a = [1]
+=> [1]
+a[5] = 10
+=> [1,nil,nil,nil,10]
+a.compact!
+=> [1,10]
+```
+
+## each_cons(cnt)
+配列から、cnt個ずつ要素を取り出し、ブロックに渡す
+
+要素が一つずつ進む。
+
+```
+(1..5).each_cons(3){ |arr| p arr}
+=> [1, 2, 3]
+=> [2, 3, 4]
+=> [3, 4, 5]
+```
+
+`each_slice`が似たメソッドとしてある
+
+引数ごとに、要素が出力される
+```
+(1..5).each_slice(3){ |arr| p arr}
+=> [1, 2, 3]
+=> [4, 5]
+```
+## Dirクラスのメソッド
+ディレクトリの操作を行うメソッド
+
+`Dir.pwd` カレントディレクトリのフルパスを示す
+
+
