@@ -1,6 +1,1 @@
-a = [1]
-p a
-a[5] = 10
-p a
-a.compact!
-p a
+p "070".to_i(0)
