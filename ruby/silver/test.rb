@@ -1,7 +1,3 @@
-s = <<'EOF'
-Hello,
-Ruby
-EOF
-'EOF'
+name = "alice"
 
-p s
+puts "i am #{name}"
