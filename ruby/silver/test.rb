@@ -1,1 +1,7 @@
-p "070".to_i(0)
+s = <<'EOF'
+Hello,
+Ruby
+EOF
+'EOF'
+
+p s
