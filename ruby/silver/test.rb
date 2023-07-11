@@ -1,3 +1,3 @@
-name = "alice"
+a = {"Foo" => "hoge", "Bar" => "piyo", "Baz" => "fuga"}
 
-puts "i am #{name}"
+p a.sort{|a, b| a[0] <=> b[0]}

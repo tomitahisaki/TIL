@@ -1,30 +1,4 @@
 # 不正解解説
-default_proc
-[公式ガイド: default_proc](https://docs.ruby-lang.org/ja/latest/method/Hash/i/default_proc.html)
-
-hashのデフォルト値を返すProcオブジェクトを返す
-
-ハッシュがブロック形式を持たない場合はnilを返す
-
-default値をnilにしてしまえば、エラーは発生しない
-```
-hash = Hash.new {|h, k| raise(KeyError, "Key #{k} does not exist in hash #{h}") }
-
-hash.default = nil
-default_proc = nil
-
-```
-エラーが発生するのは
-```
-# 参照先がない
-p hash[:a]
-
-# defalut_procが格納されるproc変数に値を指定させても
-# Key 2 does not exist in hash 1のようなエラーとなる
-proc = hash.default_proc
-p proc.call(1, 2)
-```
-
 ## String#%
 `String#%`はフォーマットされた文字列を返す
 
@@ -77,13 +51,17 @@ keyとvalueを入れ替えるメソッド
 
 ただし `n=0`の場合は、レシーバの接頭辞から判断する
 
-## Fileクラスのメソッド
-`file.dirname` は引数指定した文字列の一番後ろの/より前を返す
-
-/がない場合は、.の前を返す
-
 ## hashの生成
 `Hash[]`, `Hash{}`, `Hash.new` でhashを生成する
+
+ハッシュリテラル、新ハッシュリテラル、クラスメソッドから作り出す方法
+```
+{:a => 1 :b => 2, :c => 3} 
+
+[a: 1, b: 2, c: 3]
+
+Hash[:a, 1 :b, 2, :c, 3]
+```
 
 ## hash
 `Hash.new`で生成されたときに、default引数が指定された際は、valueにdefaultがいる
@@ -106,11 +84,39 @@ keyとvalueを入れ替えるメソッド
 
 `merge!`	selfと引数のハッシュの内容をマージします。
 
-`update`	merge!の別名です。
+`update`	merge!の別名です。 
 
 `clear`	ハッシュの中身を空にします。
 
 `fetch` hashのkeyに関連付けられた valueを返す
+
+`member?` `has_key?` `include?` `key` `member?` は全て同じ意味を持つ 引数に与えたキーが存在するか判断している
+
+default_proc
+[公式ガイド: default_proc](https://docs.ruby-l  g.org/ja/latest/method/Hash/i/default_proc.html)
+
+hashのデフォルト値を返すProcオブジェクトを返す
+
+ハッシュがブロック形式を持たない場合はnilを返す
+
+default値をnilにしてしまえば、エラーは発生しない
+```
+hash = Hash.new {|h, k| raise(KeyError, "Key #{k} does not exist in hash #{h}") }
+
+hash.default = nil
+default_proc = nil
+
+```
+エラーが発生するのは
+```
+# 参照先がない
+p hash[:a]
+
+# defalut_procが格納されるproc変数に値を指定させても
+# Key 2 does not exist in hash 1のようなエラーとなる
+proc = hash.default_proc
+p proc.call(1, 2)
+```
 
 ## injectメソッド
 [公式](https://docs.ruby-lang.org/ja/latest/method/Enumerable/i/inject.html)
@@ -216,6 +222,11 @@ pattern: 文字列もしくは正規表現
 
 pos: 負の数だと文字列末尾から検索
 
+```
+"find!find!find!find!find!find".index("!", 5)
+=> 9 # 最初に見つかった文字を左端からカウントして返す
+```
+
 ## abs
 絶対値を返す
 
@@ -280,6 +291,11 @@ b = [4, 5, 6]
        not
 低い   and or
 ```
+
+## 演算子のオーバーライド
+ほとんどがされない
+
+`..` `$$`がされる
 
 ## strftime
 [strftimeメソッド](https://docs.ruby-lang.org/ja/latest/method/Time/i/strftime.html)
@@ -366,6 +382,20 @@ IOクラスは、基本的な入出力機能のためのクラス [公式ガイ�
 
 `IO::SEEK_CUR` 現在のポインタ位置
 
+`IO.read`は第1引数で読み込みファイル、第2引数で読み込む文字、第3引数で読み込む位置を指定
+
+list.txt
+```
+REx
+Silver
+REx
+Gold
+```
+```
+IO.read("list.txt", 3, offset= 1)
+=> Ex\n
+``` 
+
 ```
 io = File.open('list.txt') # ファイルを開いてio変数に代入する
 
@@ -423,14 +453,24 @@ a.compact!
 
 `Dir.pwd` カレントディレクトリのフルパスを示す
 
-## 定数 ローカル変数
+`Dir.basename` パスの末尾のファイル名を取得する
+
+`chdir` カレントディレクトリのpathを変更する
+
+`delete` `rmdir` からのディレクトリを削除するメソッド
+
+## 定数
 メソッド内で、定数を定義出来ない
 
 メソッドで複数回呼び出すことで、定数が不定となるため
 
 SyntaxErrorが発生する
 
+## ローカル変数
+
 外部で定義したローカル変数はメソッド内で呼び出せない
+
+変数名は、小文字やアンスコから始まる。 アルファベット、数字、アンスコ、非ASCII文字のみ。予約語は除く(予約語を含むなら良い)
 
 ## splat演算子(スプレッド演算子)
 `(*)`でハッシュを展開できる
@@ -463,24 +503,18 @@ p [1..10] => [1..10]
 Time.now + 3600 # 秒数を足している
 ```
 
-## IO
-`IO.read`は第1引数で読み込みファイル、第2引数で読み込む文字、第3引数で読み込む位置を指定
 
-list.txt
-```
-REx
-Silver
-REx
-Gold
-```
-```
-IO.read("list.txt", 3, offset= 1)
-=> Ex\n
-```
 
 ## 識別子
-`<<識別子`  文章 `識別子` で文字列として扱える ヒアドキュメント
+`<<識別子`行から `識別子`行 まで文字列として扱える ヒアドキュメント
 
+インデントを加える時は、`<<-識別子` になるので注意！！
+
+"識別子", 識別子 式展開できる
+
+'識別子' 式展開できない
+
+``識別子` はコマンド出力  
 ## メソッドと変数の優先順位
 変数のほうが先に探索される
 
@@ -516,6 +550,8 @@ puts hoge # 変数のほうが先に探索されるので、0が正しい
 `hash = hash[key, value]`のように定義できる
 
 `hash.each` のようにブロックパラメータを渡す場合、ブロックパラメータのクラスは`Array`となる
+
+`**`はhashをキーワード引数に変換する
 
 ```
 japan = Class.new
@@ -586,40 +622,41 @@ hash.default_proc = nil
 p hash[:a] # defaultをnilにしているので、例外にならない
 ```
 
-## member?
-キーを持つか判断できる
-
-```
-hash.member?(key) => true || false
-```
-
 ## Fileクラスのメソッド
+`file.dirname` は引数指定した文字列の一番後ろの/より前を返す
 
-### open
+/がない場合は、.の前を返す
+
+`open`
 ```
 File.open('ファイル名', モード名) do |n|
   #処理 write,seekなど
 end
 ```
 モード名を変えることで、読み込みや書き込みを返る
-`w w+`は読み込み、書き込みをする  上書きをする
-`a a+` は読み込み、追記書き込みをする 読み込みは先頭からして、書き込みはファイルの末尾にする
 
-### chomd
-ファイルのpermissionを変更するメソッド
+`w `は書き込みをする(元データに上書き)  存在する時は上書きをする `W+`は書き込み、読み込み 
 
-引数に指定したファイルモードを変更します。
+`a a+` は読み込み、追記書き込みをする 読み込みは先頭からして、書き込みはファイルの末尾にする `a+`は追記モード
 
+`r` は 読み込みオンリー `r+`は読み込みと書き込み 必要に応じて書き換え、追加したいとき
+
+`chmod`ファイルのpermissionを変更するメソッド 引数に指定したファイルモードを変更します。
 ```
 File.chmod(0644, "text.txt")
 => 所有者は読み書き可、実行不能
 => 所有グループとその他は読み込み可、書き込みと実行は不可
 ```
 
-### delete
-引数に指定したファイルを削除する
+`delete` 引数に指定したファイルを削除する
 ```
 File.delete("text.txt") => 1
+```
+
+`join` ディレクトリ名を連結したいときなどにつかう
+```
+puts File.join("a", "b") => "a/b"
+puts File.join("/","user","bin") => /user/bin
 ```
 
 ## グローバル関数
@@ -638,22 +675,7 @@ stringに変換するメソッド
 ## raiseメソッド(例外処理)
 StandartErrorを継承しないクラスのインスタンスを指定すると、TypeErrorが発生する
 
-## <=>演算子
-順序比較のために使われる
-
- - 左オブジェクトが右オブジェクトより小さい場合は、-1を返します。
-
- - 左オブジェクトが右オブジェクトと等しい場合は、0を返します。
-
- - 左オブジェクトが右オブジェクトより大きい場合は、1を返します。
-
-```
-puts 2 <=> 1  # 出力: 1
-puts 2 <=> 2  # 出力: 0
-puts 1 <=> 2  # 出力: -1
-```
-
-## sortメソッド(Arrayクラス)
+## sortメソッド
 配列の並び替えを行いたいときに使うメソッド
 
 <=>演算子を使って、配列の並び替えを行う。
@@ -669,11 +691,35 @@ p [1, "a", 2, "b", 3, "c"].sort => ArgumentError
 
 `sort{|a, b| b <=> a}` => 降順
 
+### hashをsortすると
+hashをsortする時は、a[1] <=> b[1]で比較する演算子には、各ペアの`value`を値の昇順に並べるという意味になる。
+
+```
+a = {"Foo" => "hoge", "Bar" => "piyo", "Baz" => "fuga"}
+p a.sort{|a, b| a[1] <=> b[1]} # valueを比較している
+=> [["Baz", "fuga"], ["Foo", "hoge"], ["Bar", "piyo"]]
+
+p a.sort{|a, b| a[0] <=> b[0]} # keyを比較している
+=> [["Bar", "piyo"], ["Baz", "fuga"], ["Foo", "hoge"]]
+```
+
+## <=>演算子
+順序比較のために使われる
+
+ - 左オブジェクトが右オブジェクトより小さい場合は、-1を返します。
+
+ - 左オブジェクトが右オブジェクトと等しい場合は、0を返します。
+
+ - 左オブジェクトが右オブジェクトより大きい場合は、1を返します。
+
+```
+puts 2 <=> 1  # 出力: 1
+puts 2 <=> 2  # 出力: 0
+puts 1 <=> 2  # 出力: -1
+```
+
 ## reverse(Arrayクラス)
 配列の要素を逆に並び替えるメソッド
-
-## Dirクラス メソッド
-`delete` `rmdir` からのディレクトリを削除するメソッド
 
 成功すると、`0`を返す。引数に削除対象のディレクトリパスを文字列で指定する
 
@@ -708,9 +754,8 @@ y => 2
 z => 3
 ```
 
-## splitメソッド(Stringクラス)
-引数の正規表現にマッチしたもので文字列を分解します
-
+## String
+`split` 引数の正規表現にマッチしたもので文字列を分解します
 ```
 p "spring,summer,autumn,winter".split(/,/)
 => ["spring","summer","autumn","winter"]
@@ -718,4 +763,106 @@ p "spring,summer,autumn,winter".split(/,/)
 # ()で囲むと全てが分解される
 p "spring,summer,autumn,winter".split(/,/)
 => ["Spring", ",", "Summer", ",", "Autumn", ",", "Winter"]
+```
+
+`delete_prefix` 引数の文字列を先頭から削除した文字列を返す
+
+## rescue(例外処理)
+例外捕捉するための書き方
+```
+begin
+
+rescue KeyError
+
+rescue StopIteration
+
+end
+```
+```
+begin
+
+rescue KeyError, StopIteration
+
+end
+```
+```
+begin
+
+rescue *[KeyError, StopIteration]
+
+end
+```
+引数を渡す場合、`=>`をつける
+```
+rescue => e
+
+rescue ZeroDivisionError => ex
+```
+
+## オブジェクト生成
+下記のメソッドで生成する
+
+ただし、`start``fork`では、`initialize`が呼ばれないので注意！
+```
+Klass.new
+Klass.start
+Klass.fork
+```
+
+## unless else
+`unless`は条件が成立しないときに実行される
+
+`else`は使えるが、`elseif`は使えない
+
+```
+unless n = 3
+  "3ではない"
+# elsifは使えないので、
+else
+  "他の数字"
+end
+```
+
+## any?(Arrayクラス)
+ブロックの戻り値が`true`になると、繰り返しを止める
+
+```
+[1,2,3].any? {|n| n == 3 } => true
+[1,2,3].any? {|n| n == 4 } => false
+```
+
+## zip(Arrayクラス)
+配列の要素を引数の配列の各要素と組み合わせて、配列の配列を生成して返す
+
+```
+a1 = [1,2]
+a2 = [3,4]
+p a3 = a1.zip(a2) => [[1,3],[2,4]]
+```
+
+## slice
+指定された要素を返す。最初にマッチした文字列のみを返す
+
+```
+"hobepiyohobehobe".slice(/o../)
+=> "obe"
+```
+
+## chrメソッド ordメソッド
+`chr` はASCIIコードの数値などを文字列に変換するメソッド
+```
+p 49.chr
+=> "1"
+
+p 0x45.chr
+=> "E"
+```
+
+`ord` は文字を数値に変換するメソッド
+```
+p "a".ord 
+=> 97
+
+p "A".ord
+=> 65
 ```
