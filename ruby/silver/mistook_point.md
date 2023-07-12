@@ -684,8 +684,6 @@ stringに変換するメソッド
 ```
 7.to_s(3) => 21
 ```
-## raiseメソッド(例外処理)
-StandartErrorを継承しないクラスのインスタンスを指定すると、TypeErrorが発生する
 
 ## sortメソッド
 配列の並び替えを行いたいときに使うメソッド
@@ -779,7 +777,10 @@ p "spring,summer,autumn,winter".split(/,/)
 
 `delete_prefix` 引数の文字列を先頭から削除した文字列を返す
 
-## rescue(例外処理)
+## 例外処理
+
+StandartErrorを継承しないクラスのインスタンスを指定すると、TypeErrorが発生する
+
 例外捕捉するための書き方
 ```
 begin
@@ -810,6 +811,8 @@ rescue => e
 
 rescue ZeroDivisionError => ex
 ```
+
+`begin``end`は省略可能。
 
 ## オブジェクト生成
 下記のメソッドで生成する
@@ -894,5 +897,12 @@ p "A".ord
 
 `/[A-Z][0-9]/` 任意の文字に一致する(AからZと0から9)
 
+`/^[A-Z][^A-Z]+/`
+
 ## grep(pattern)
 patternにあった要素を全て含んだ配列を返す
+
+## Timeオブジェクト
+`Time`は時刻を起算時からの経過秒数で保持している。
+
+起算時は、協定世界時の1970年1月1日午前0時のことを指す
