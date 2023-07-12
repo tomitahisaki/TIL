@@ -7,7 +7,6 @@
 
 #  tree構造
 ```
-.
 ├── AWS
 │   └── beginner.md
 ├── README.md
@@ -18,8 +17,12 @@
 │   ├── Paiza
 │   ├── algo
 │   ├── atcoder
+│   └── zentansaku2.rb
 └── ruby
     ├── Regexp
     ├── class
-    └── hash_symbol
+    ├── exception
+    ├── hash_symbol
+    ├── module
+    └── silver
 ```
