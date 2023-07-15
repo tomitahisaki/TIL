@@ -1,3 +1,9 @@
-id = [1, 2, 3, 4]
+p dir = Dir.open("/Users/hisaki/practice/til/ruby/silver")
 
-p id.sort
+
+
+dir = Dir.open("/Users/hisaki/practice/til/ruby/silver")
+dir.each{|file| puts file}
+
+
+p dir = Dir.open("/Users/hisaki/practice/til/ruby/silver"){|file| file.path}
