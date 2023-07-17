@@ -1,9 +1,10 @@
-p dir = Dir.open("/Users/hisaki/practice/til/ruby/silver")
+arr = [
+  "a".to_i(36),
+  "070".to_i(0),
+  nil.to_i,
+  "0b0001".to_i
+]
 
+arr.each{|a| puts a }
 
-
-dir = Dir.open("/Users/hisaki/practice/til/ruby/silver")
-dir.each{|file| puts file}
-
-
-p dir = Dir.open("/Users/hisaki/practice/til/ruby/silver"){|file| file.path}
+puts "0b01".to_i(2)
