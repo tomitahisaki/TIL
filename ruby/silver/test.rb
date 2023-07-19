@@ -1,10 +1,12 @@
-arr = [
-  "a".to_i(36),
-  "070".to_i(0),
-  nil.to_i,
-  "0b0001".to_i
-]
+class NonasciiError < StandardError
+end
 
-arr.each{|a| puts a }
-
-puts "0b01".to_i(2)
+File.open("sliver_practice.txt") do |io|
+  io.each_line do |str|
+    begin
+      raise(NonasciiError, "non ascii character detected") unless str.ascii_only?
+    rescue => ex
+      puts "#{ex.message} : #{str}"
+    end
+  end
+end
