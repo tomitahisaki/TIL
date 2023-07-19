@@ -62,6 +62,15 @@ keyとvalueを入れ替えるメソッド
 
 Hash[:a, 1 :b, 2, :c, 3]
 ```
+```
+Hash[a: 1, b: 2] => {:a => 1, :b => 2}
+Hash[1,1] => {:1 ==> 1}
+Hash[1,1,1] => odd number of arguments for Hash (ArgumentError)
+{a:1, b:2} => {a:1, b:2}
+{:a => 1}
+{"a": 1}
+{:"a" => 1}
+```
 
 ## hash
 `Hash.new`で生成されたときに、default引数が指定された際は、valueにdefaultがいる
