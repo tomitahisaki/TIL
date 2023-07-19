@@ -4,4 +4,5 @@ source "https://rubygems.org"
 
 # gem "rails"
 
-gem 'monetize'
+gem 'money'
+gem 'i18n', '~> 1.14.1' 
