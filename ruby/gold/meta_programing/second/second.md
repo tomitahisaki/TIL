@@ -27,4 +27,29 @@ Rubyはクラスの定義に入ったときに、初めてクラスを定義す�
 **Monetize** とは、金額や通貨のユーティリティクラスがまとめられたもの。
 
 ```
+require "money"
+require "monetize"
 
+# from_numericを使って、Moneyオブジェクトを生成する
+price = Monetize.from_numeric(99, "USD")
+p price.format => $99.00
+
+# to_moneyを使って、Moneyオブジェクトにする
+price = 100.to_money("USD)
+p price.format => $100.00
+```
+to_moneyメソッドは、Moneyクラスに存在しているので、注意! クラスメソッドに書いてある。(書籍だと、Numericクラス)
+```
+class Money
+  class << self
+    def to_money(given_currency = nil)
+      given_currency = Currency.wrap(given_currency)
+      if given_currency.nil? || self.currency == given_currency
+        self
+      else
+        exchange_to(given_currency)
+      end
+    end
+  end
+end
+```

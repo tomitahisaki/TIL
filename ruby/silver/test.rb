@@ -1,3 +1,4 @@
+
 class NonasciiError < StandardError
 end
 
