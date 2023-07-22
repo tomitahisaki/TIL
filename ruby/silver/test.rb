@@ -1,10 +1,4 @@
-arr = [
-  "a".to_i(36),
-  "070".to_i(0),
-  nil.to_i,
-  "0b0001".to_i
-]
+hash1 = {1 => "foo", 2 => "hoge", 3 => "Baz"}
+hash2 = {1 => "Foo", 2 => "hoge", 3 => "Baz"}
 
-arr.each{|a| puts a }
-
-puts "0b01".to_i(2)
+p hash1.update(hash2).sort{ | a, b | a[1] <=> b[1] }
