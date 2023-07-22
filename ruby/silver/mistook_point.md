@@ -302,9 +302,18 @@ b = [4, 5, 6]
 ```
 
 ## 演算子のオーバーライド
-ほとんどがされない
+ほとんどの演算子が再定義可能。メソッドとして定義されているから
 
-`..` `$$`がされる
+```
+def +(other); end => obj + other
+def -(other); end => obj + other
+```
+
+## 再定義できない演算子
+演算子の組み合わせである自己代入演算子が再定義できない
+```
+=  ?:  ..  ...  not  &&  and  ||  or  ::
+```    
 
 ## strftime
 [strftimeメソッド](https://docs.ruby-lang.org/ja/latest/method/Time/i/strftime.html)
@@ -898,6 +907,12 @@ p array => [1, 2, 3, 4]
 "hobepiyohobehobe".slice(/o../)
 => "obe"
 ```
+紛らわしい引数 `()` `(//)`
+```
+"a b c d".split() => ["a", "b", "c", "d"]
+
+"a b c d".split(//) => ["a", " ", "b", " ", "c", " ", "d"]
+```
 
 ## chrメソッド ordメソッド
 `chr` はASCIIコードの数値などを文字列に変換するメソッド
@@ -932,3 +947,16 @@ patternにあった要素を全て含んだ配列を返す
 `Time`は時刻を起算時からの経過秒数で保持している。
 
 起算時は、協定世界時の1970年1月1日午前0時のことを指す
+
+## chunk 
+ブロックの評価値が同じ値が続くものを1つの塊とする
+
+そして、評価値が異なるタイミングでチャンクが区切られる。
+```
+[1,2,3,4,5].chunk { |n| n.even? }.each {|even, ary| p [even, ary]}
+=>  [false, [1]]
+    [true, [2]]
+    [false, [3]]
+    [true, [4]]
+    [false, [5]]
+```
