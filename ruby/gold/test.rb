@@ -1,16 +1,13 @@
-class Stack
-  def initialize
-    @contents = []
-  end
-
-  [:push, :pop].each do |name|
-    define_method(name) do |*args|
-      @contents.send(name, *args)
-    end
-  end
+def m1(*)
+  str = yield if block_given?
+  p "m1 #{str}"
 end
 
-stack = Stack.new
-stack.push("foo")
-stack.push("bar")
-p stack.pop
+def m2(*)
+  str = yield if block_given?
+  p "m2 #{str}"
+end
+
+m1 m2 do
+  "hello"
+end
