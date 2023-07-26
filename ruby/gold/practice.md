@@ -143,6 +143,21 @@ bar(1){ 2 }
 ### include
 ModuleのインスタンスメソッドをMix-inするメソッド
 
+継承関係は、includeしたクラスの上に位置する 複数追加した場合は、左側が先に探索される
+```
+module M1
+end
+
+module M2
+end
+
+class C
+  include M1, M2
+end
+
+p C.ancestors => [C, M1, M2, Object, Kernel, BasicObject]
+```
+
 `methods` では取得できない(インスタンスメソッドのため)
 
 `instance_methods`で取得可能
@@ -156,6 +171,10 @@ ModuleのインスタンスメソッドをMix-inするメソッド
 
 ### using
 Refinementを有効にするために使用。
+
+***メソッドの中で呼び出すことはできない!!***
+
+=> 呼び出した場合は、`RunTimeError`が発生する
 ```
 class C
   def m1
@@ -241,4 +260,48 @@ m1 m2 { "hello" }
 => m1
 ```
 
-## 
+## require loadの違い
+### `require`
+  - 同じファイルを1度のみロードする
+  - `.rb` `.so`を自動補完する
+  - ライブラリのロード
+
+### `load`
+  - 無条件にロードする
+  - 自動補完なし
+  - 設定ファイルの読み込み
+
+
+```
+module Test
+  $num += 1
+end
+```
+```
+$num = 0
+1..10.times do |n|
+  load './test.rb'
+end
+
+puts $num => 10  # 無条件にロードされるので、
+# require にすると1度のみロードされるので、 "1"が出力される
+```
+
+## Object::DATA
+スクリプトの `__END__` プログラムの終り以降をアクセスする File オブジェクト。
+
+`__END__` を含まないプログラムにおいては DATA は定義されません。
+### _END_
+`__END__`以降はファイルとして扱います。
+
+## Proc lambda
+2つの違いについて
+
+| 特徴          | Proc          | lambda            |
+| ------------- | ------------- | ----------------- |
+| 引数の数      | 曖昧          | 厳密              |
+| 引数の渡し方  | Proc.new{}    | x, y              |
+
+`return` `break` `next call`以降が実行されない `call`以降も実行される
+## lambda 
+`call`するときに、引数の省略できない。
