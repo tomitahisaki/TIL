@@ -1,16 +1,22 @@
-class Stack
-  def initialize
-    @contents = []
-  end
-
-  [:push, :pop].each do |name|
-    define_method(name) do |*args|
-      @contents.send(name, *args)
-    end
+module M
+  def refer_const
+    CONST
   end
 end
 
-stack = Stack.new
-stack.push("foo")
-stack.push("bar")
-p stack.pop
+module E
+  CONST = '010'
+end
+
+class D
+  CONST = "001"
+end
+
+class C < D
+  include E
+  include M
+  CONST = '100'
+end
+
+c = C.new
+p c.refer_const
