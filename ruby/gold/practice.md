@@ -173,6 +173,15 @@ bar(1){ 2 }
 
 `methods`で特異メソッドの一覧を取得
 
+下記の方法で特異メソッドを呼び出せる
+```
+include Parent
+extend self
+```
+```
+extend Parent
+```
+
 ### include
 ModuleのインスタンスメソッドをMix-inするメソッド
 
@@ -348,10 +357,24 @@ puts C.new.m2 # # "Hello, world"
 
 StringやArrayなどは、Classクラスのインスタンスなので、引き継いでいる。
 
-## objectクラス
+## Kernelモジュール
 
 ### singleton_class
-レシーバの特異クラスを返す。
+レシーバの特異クラスを返す。インスタンスメソッド
+
+```
+m = C.method :singleton_class
+p m.owner # Kernel
+```
+特異クラスの継承関係にKernelモジュールがあるので、特異クラスの特異クラスのような取得ができる
+
+```
+class C
+end
+
+p C.singleton_class # #<Class:C>
+p C.singleton_class # #<Class:#Class:C>>
+```
 
 ```
 Class.method_defined? :new => true # Classのインスタンスメソッド
@@ -717,3 +740,72 @@ puts "After resume"
 `%r//` 正規表現
 
 `%w//` 要素が文字列の配列
+
+## initialize
+可視性はprivateになっている publicにしても、必ずprivateになること
+
+```
+class C 
+public
+  def initialize
+  end
+end
+
+C.new.public_methods.include? :initialize => false
+```
+
+## ::演算子
+`::`があると、トップレベルから定数の探索を行います。
+
+モジュールMにある`::C`はトップレベルにあるものをさすので、greetメソッドの`CONST`はクラスCにはない
+
+Baseを継承しているので、そこにある定数`CONST`を出力する
+```
+class Base
+  CONST = "Hello, world"
+end
+
+class C < Base
+end
+
+module P
+  CONST = "Good, night"
+end
+
+class Base
+  prepend P
+end
+
+module M
+  class C
+    CONST = "Good, evening"
+  end
+end
+
+module M
+  class ::C
+    def greet
+      CONST
+    end
+  end
+end
+
+p C.new.greet => "Hello World"
+```
+
+## instance_eval
+引数に文字列を指定すると、ネスト状態は特異クラスとなる
+
+```
+module M
+  CONST = "Hello, world"
+end
+
+M.instance_eval(<<-CODE)
+  def say
+    CONST
+  end
+CODE
+
+p M::say => "Hello World"
+```
