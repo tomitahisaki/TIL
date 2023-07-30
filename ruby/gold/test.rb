@@ -1,22 +1,11 @@
-module M
-  def refer_const
-    CONST
+class Hoge
+  def initialize
+    @fizz = "bazz"
   end
 end
 
-module E
-  CONST = '010'
-end
-
-class D
-  CONST = "001"
-end
-
-class C < D
-  include E
-  include M
-  CONST = '100'
-end
-
-c = C.new
-p c.refer_const
+puts Hoge.new.inspect
+puts Hoge.new
+puts Hoge.new.to_s
+p Hoge.new
+print Hoge.new

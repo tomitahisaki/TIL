@@ -58,7 +58,24 @@ B.new.dummy_method => A#method_missing
 Complex同士の計算は、Complexを返す。
 
 ## const_getメソッド
-定義されている定数の値を取り出すメソッド
+selfに定義されている定数の値を取り出すメソッド 自クラスに定義がない場合は、探索する クラス名を文字列で返す
+
+Human#nameクラスはclass#nameをオーバーライドしている。
+```
+class Human
+  NAME = "Unknown"
+
+  def self.name
+    const_get(:NAME)
+  end
+end
+
+class Fukuzawa < Human
+  NAME = "Yukichi"
+end
+
+puts Fukuzawa.name => Yukichi
+```
 
 ## YAML
 設定ファイルとしてよく扱う。yamlファイル
@@ -83,6 +100,8 @@ YAML.load(yaml_data) => ["Red", "Green", "Blue"]
 ```
 
 ## 定数
+定数の探索順位はクラス内 -> スーパークラス -> クラス探索の順番(指定されない限り)
+
 "100"を出力するには、`Object::CONST` `CONST`
 
 "010"は、`C::CONST`
@@ -139,29 +158,51 @@ p C.class_variable_get(@@val) => 3
 ### instance
 これ1つしか特異(クラス)メソッドがない。 クラス唯一のインスタンスを返す。
 
-## Proc
-ブロックをオブジェクト化したProcクラスのインスタンス
+### singleton_class
+レシーバの特異クラスを返す。インスタンスメソッド
 
-メソッドと変数の検索順位では、変数が先となる。
 ```
-def foo(n)
-  n
+Class.method_defined? :new => true # Classのインスタンスメソッド
+String.method_defined? :new => false # Stringのインスタンスメソッドではない
+Class.singleton_class.method_defined? :new => true # レシーバの特異クラス(クラスメソッド)を返す
+String.singleton_class.method_defined? :new => true # 上記と同様
+```
+
+```
+m = C.method :singleton_class
+p m.owner # Kernel
+```
+特異クラスの継承関係にKernelモジュールがあるので、特異クラスの特異クラスのような取得ができる
+
+```
+class C
 end
 
-foo = Proc.new{ |n| n * 2 }
+p C.singleton_class # #<Class:C>
+p C.singleton_class # #<Class:#Class:C>>
+```
 
-puts foo[2]
+### 特異クラスで`self`をつかう
+レシーバのオブジェクトを取得できる
+
 ```
-{}内は、ブロックとして扱われるので `yield`に代入される
-```
-def bar(n)
-  p n  => 1
-  p yield => 2
-  p n + yield => 3
+class C
+  def self._singleton
+    class << C
+      self # 特異クラスのみ有効なローカル変数
+    end
+  end
 end
 
-bar(1){ 2 }
+p C._singleton #<Class:C>
 ```
+もしくは
+```
+class C
+end
+p C.singleton_class
+```
+
 
 ## Module
 ### extend
@@ -169,7 +210,7 @@ bar(1){ 2 }
 
 `methods.include? :メソッド名` で特異メソッドがあるかbooleanで返す
 
-=> 特異メソッドだとfalseになる。？
+=> 特異メソッドだとfalseになる。
 
 `methods`で特異メソッドの一覧を取得
 
@@ -235,6 +276,23 @@ C.new.foo
 
 `methods.include? :メソッド名`で `true`となる
 
+### prepend
+モジュールのメソッドを特異メソッドとして追加する
+
+```
+module M1
+end
+
+module M2
+end
+
+class C
+  prepend M1, M2
+end
+
+p C.ancestors => [M1, M2, C, Object, Kernel, BasicObject]
+```
+
 ### module_eval
 [module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
 
@@ -261,6 +319,32 @@ B = 15
 A.f => 15
 ```
 
+ブロックを利用しないかどうかで、トップレベルで定義するか変化する
+```
+# BLOCK: CONST is defined? false
+# BLOCK: CONST is defined? true
+# HERE_DOC: CONST is defined? true
+# HERE_DOC: CONST is defined? false
+
+mod = Module.new
+
+# ネストが変化しない
+mod.module_eval do
+  CONST_IN_BLOCK = 100
+end
+
+# ネストが変化する
+mod.module_eval(<<-EVAL)
+  CONST_IN_HERE_DOC = 100
+EVAL
+
+puts "BLOCK: CONST is defined? #{mod.const_defined?(:CONST_IN_BLOCK, false)}"
+puts "BLOCK: CONST is defined? #{Object.const_defined?(:CONST_IN_BLOCK, false)}"
+
+puts "HERE_DOC: CONST is defined? #{mod.const_defined?(:CONST_IN_HERE_DOC, false)}"
+puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, false)}"
+```
+
 ### nesting
 ネストの状態を表す
 
@@ -281,6 +365,29 @@ end
 
 ### using
 Refinementを有効にするために使用。
+
+使う場所によっては、スコープ外となり無効となる
+```
+class C
+  def m1
+    400
+  end
+end
+
+module M
+  refine C do
+    def m1
+      100
+    end
+  end
+end
+
+class C
+  using M
+end
+
+puts C.new.m1 => 400
+```
 
 ***メソッドの中で呼び出すことはできない!!***
 
@@ -357,32 +464,6 @@ puts C.new.m2 # # "Hello, world"
 
 StringやArrayなどは、Classクラスのインスタンスなので、引き継いでいる。
 
-## Kernelモジュール
-
-### singleton_class
-レシーバの特異クラスを返す。インスタンスメソッド
-
-```
-m = C.method :singleton_class
-p m.owner # Kernel
-```
-特異クラスの継承関係にKernelモジュールがあるので、特異クラスの特異クラスのような取得ができる
-
-```
-class C
-end
-
-p C.singleton_class # #<Class:C>
-p C.singleton_class # #<Class:#Class:C>>
-```
-
-```
-Class.method_defined? :new => true # Classのインスタンスメソッド
-String.method_defined? :new => false # Stringのインスタンスメソッドではない
-Class.singleton_class.method_defined? :new => true # レシーバの特異クラス(クラスメソッド)を返す
-String.singleton_class.method_defined? :new => true # 上記と同様
-```
-
 ## レキシカルスコープ
 変数の有効範囲：変数の有効範囲は、その変数が定義された場所によって決まる。つまり変数はその変数が含まれるブロックや関数、クラスなどのスコープ内で有効
 
@@ -442,6 +523,9 @@ m1 m2 { "hello" }
 ```
 
 ## require loadの違い
+どちらも外部ライブラリを読み込める。
+
+***モジュールは読み込まないので注意***
 ### `require`
   - 同じファイルを1度のみロードする
   - `.rb` `.so`を自動補完する
@@ -484,7 +568,7 @@ puts $num => 10  # 無条件にロードされるので、
 | 引数の渡し方  | Proc.new{}    | x, y              |
 
 `return` `break` `next call`以降が実行されない `call`以降も実行される
-## lambda 
+### lambda 
 `call`するときに、引数の省略できない。
 ```
 sums = 0
@@ -496,8 +580,62 @@ p1 = lambda { |x, y|
 
 p1.call("1", "2")
 p1.call("7", "5")
+p1.call("9")
+
+p sums => エラーが発生する
+```
+
+### Proc
+```
+sums = 0
+
+p1 = Proc { |x, y| 
+  x, y = x.to_i, y.to_i
+  sums = [x, y].max 
+}
+
+p1.call("1", "2")
+p1.call("7", "5")
+p1.call("9")
 
 p sums => 9
+```
+
+### Proc
+ブロックをオブジェクト化したProcクラスのインスタンス
+
+メソッドと変数の検索順位では、変数が先となる。
+```
+def foo(n)
+  n
+end
+
+foo = Proc.new{ |n| n * 2 }
+
+puts foo[2]
+```
+{}内は、ブロックとして扱われるので `yield`に代入される
+```
+def bar(n)
+  p n  => 1
+  p yield => 2
+  p n + yield => 3
+end
+
+bar(1){ 2 }
+```
+
+Procは、`call`、`[]`で呼び出せる
+```
+def foo(n)
+  n ** n
+end
+
+foo = Proc.new { |n|
+  n * 3
+}
+
+puts foo[2] * 2 => 12
 ```
 
 ## super
@@ -555,7 +693,7 @@ end
 hoge(1,2,3,4) do |*args|
   p args.length > 0 ? "hello" : args
 end
-```
+```````
 
 `&block`を仮引数の最後にすることで、処理される。
 ```
@@ -641,7 +779,9 @@ puts datetime  # 例: 2023-07-27T10:30:45+09:00
 ### alias_method 
 メソッド内でメソッドに別名を付ける場合は、Module#alias_methodを使う
 
-`alias_method :new, :old` `alias_method "new", "old`
+`alias_method :new, :old` `alias_method "new", "old"` 
+
+**文字列かシンボルを受け取る**
 ```
 class Human
   attr_reader :name
@@ -808,4 +948,87 @@ M.instance_eval(<<-CODE)
 CODE
 
 p M::say => "Hello World"
+```
+
+ブロックであれば、ネストは定義された場所のネスト。文字列であれば、レシーバのコンテキストで評価
+```
+m = Module.new
+
+m.instance_eval do
+  m.instance_variable_set :@block, Module.nesting
+end
+
+m.instance_eval(<<-EVAL)
+  m.instance_variable_set :@eval,  Module.nesting
+EVAL
+
+block = m.instance_variable_get :@block
+_eval = m.instance_variable_get :@eval
+
+puts block.size => 0
+puts _eval.size => 1
+```
+
+## arg
+キーワード引数のこと。省略できないので注意
+```
+def foo(arg:)
+  puts arg
+end
+
+foo arg: 100 # このように引数を渡すことが絶対
+```
+下記のコードでは、`ArgumentError: missing keyword: arg`となる
+```
+def foo(arg:)
+  puts arg
+end
+
+foo 100 => エラーになる
+```
+
+## freeze
+オブジェクトの破壊的変更を禁止する
+
+配列の場合、配列と配列の要素に`freeze`を使用しないと破壊的変更が可能になる
+```
+ary = ["a", "b", "c"].freeze # 配列に対して使用している
+
+ary.each do |n|
+  n.upcase!
+end
+
+p ary => ["A", "B", "C"]
+```
+
+## Lazyクラス
+### lazyメソッド
+`map` `select`メソッドに遅延評価を提供する
+
+takeが実行されると、1から3まで`map`に渡されたと判断し、`inject`に渡される。
+```
+p (1..10).lazy.map{ |num| 
+ num * 2
+ }.take(3).inject(0, &:+) => 12
+```
+
+## Objectクラス
+様々なクラスのスーパークラス
+
+### inspect
+それぞれのクラスでオーバーライドされているため、それぞれの型に沿った適切な文字列が返される。
+
+標準出力の`p`メソッドはinspectを用いて出力される
+```
+class Hoge
+  def initialize
+    @fizz = "bazz"
+  end
+end
+
+puts Hoge.new.inspect
+puts Hoge.new
+puts Hoge.new.to_s
+p Hoge.new  # inspectと同じ結果が出力される。
+print Hoge.new
 ```
