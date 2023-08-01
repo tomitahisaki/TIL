@@ -4,6 +4,8 @@
 
 仲間クラス(自クラス、サブクラス)から参照するためにメソッドとしては公開されている。
 
+`methods.include?` 仲間クラスから参照可能。
+
 ## method_missing
 継承チェーンを辿った末にメソッドが見つからない場合に呼び出される。
 
@@ -163,7 +165,9 @@ p C.class_variable_get(@@val) => 3
 
 特異クラスに対応したオブジェクトは指定されたインスタンスの生成元をスーパークラスとして指す。
 
-クラスメソッドは、特異クラスのインスタンスと考えられる。(難しいが)
+クラスメソッドは、特異クラスのインスタンスメソッドと考えられる。(特異メソッド？)
+
+=> クラス名もインスタンスと考えると、クラスメソッドはそのクラスに定義された特異メソッドといえるから。
 ```
 foo1 = Foo.new # Fooクラスのインスタンス
 def foo1.method_A
@@ -192,11 +196,15 @@ class C
 end
 
 p C.singleton_class # #<Class:C>
-p C.singleton_class # #<Class:#Class:C>>
+p C.singleton_class.singleton_class # #<Class:#Class:C>>
 ```
 
 ### 特異クラスで`self`をつかう
 レシーバのオブジェクトを取得できる
+
+`オブジェクト.singleton_class`で特異クラスを取得可能。
+
+もしくは、特異クラスで`self`を参照するとレシーバのオブジェクトがとれる。
 
 ```
 class C
@@ -543,12 +551,13 @@ m1 m2 { "hello" }
   - 同じファイルを1度のみロードする
   - `.rb` `.so`を自動補完する
   - ライブラリのロード
+  - バイナリエクステンションもロード可能
 
 ### `load`
   - 無条件にロードする
   - 自動補完なし
   - 設定ファイルの読み込み
-
+  - バイナリエクステンション読み込めない
 
 ```
 module Test
@@ -650,6 +659,20 @@ foo = Proc.new { |n|
 
 puts foo[2] * 2 => 12
 ```
+下記の処理の流れ
+```
+次のプログラムを実行するとどうなりますか
+
+val = 100
+
+def method(val) # ①最初に処理される。 yield(115)となるProcに渡される。
+  yield(15 + val)
+end
+
+_proc = Proc.new{|arg| val + arg } # ②argの引数には、yield(115)の仮引数が入る。
+
+p method(val, &_proc) => 215
+```
 
 ## super
 スーパークラスの同名メソッドが呼ばれる
@@ -672,6 +695,30 @@ class C < S
 end
 
 C.new(1,2,3)
+```
+
+### 無名の可変長引数
+`def initialize(*)`はその表し方
+
+`super`などを呼び出す場合、引数に気をつける必要がある。`initialize(*)`にすることで、 サブクラスの引数を意識する必要がなくなる。
+
+```
+class S
+  def initialize(*)
+    puts "S#initialize"
+  end
+end
+
+class C < S
+  def initialize(*args)
+    super
+    puts "C#initialize"
+  end
+end
+
+C.new(1,2,3,4,5) 
+=> S#initialize
+=> C#initialize
 ```
 
 ## 例外処理の確認
@@ -755,6 +802,7 @@ end
 
 ## Date Time DateTime
 全て、日付と時間を扱うクラス
+
 ### Date
 日付のみを扱うクラス。時刻情報は含まれない。タイムゾーンに依存に依存しない。
 
@@ -860,6 +908,8 @@ JavaScript Object Notationを扱うためのモジュール
 [公式 Fiberクラス](https://docs.ruby-lang.org/ja/latest/class/Fiber.html)
 
 Fiber#resume により子へコンテキストを切り替える
+
+=> Fiber.yieldが最後に実行した行からの再開、Fiber.newにしたブロックの最初の評価を行う。
 
 Fiber.yield により親へコンテキストを切り替える
 
@@ -1045,3 +1095,8 @@ puts Hoge.new.to_s
 p Hoge.new  # inspectと同じ結果が出力される。
 print Hoge.new
 ```
+
+## マーシャリング
+オブジェクトをファイルやDBなどに保存できる形式に変換、または変換を戻すこと。
+
+オブジェクト(IO,File,Dir,Socket)や特異メソッド、無名のクラスやモジュールはマーシャリングできない。

@@ -1,3 +1,13 @@
-class C
+class C1
+
 end
-p C.singleton_class
+
+module Mod
+  
+end
+
+class C2 < C1
+  include Mod
+end
+
+p C2.ancestors
