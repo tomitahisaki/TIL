@@ -1,11 +1,3 @@
-class Hoge
-  def initialize
-    @fizz = "bazz"
-  end
+class C
 end
-
-puts Hoge.new.inspect
-puts Hoge.new
-puts Hoge.new.to_s
-p Hoge.new
-print Hoge.new
+p C.singleton_class

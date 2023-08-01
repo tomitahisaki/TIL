@@ -161,6 +161,19 @@ p C.class_variable_get(@@val) => 3
 ### singleton_class
 レシーバの特異クラスを返す。インスタンスメソッド
 
+特異クラスに対応したオブジェクトは指定されたインスタンスの生成元をスーパークラスとして指す。
+
+クラスメソッドは、特異クラスのインスタンスと考えられる。(難しいが)
+```
+foo1 = Foo.new # Fooクラスのインスタンス
+def foo1.method_A
+  "foo1 only"
+end
+p foo1.method_A => "foo1 only"
+foo2 = Foo.new
+p foo2.method_B => NoMethodError
+```
+
 ```
 Class.method_defined? :new => true # Classのインスタンスメソッド
 String.method_defined? :new => false # Stringのインスタンスメソッドではない
