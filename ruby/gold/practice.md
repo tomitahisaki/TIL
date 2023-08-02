@@ -4,6 +4,8 @@
 
 仲間クラス(自クラス、サブクラス)から参照するためにメソッドとしては公開されている。
 
+`methods.include?` 仲間クラスから参照可能。
+
 ## method_missing
 継承チェーンを辿った末にメソッドが見つからない場合に呼び出される。
 
@@ -161,6 +163,21 @@ p C.class_variable_get(@@val) => 3
 ### singleton_class
 レシーバの特異クラスを返す。インスタンスメソッド
 
+特異クラスに対応したオブジェクトは指定されたインスタンスの生成元をスーパークラスとして指す。
+
+クラスメソッドは、特異クラスのインスタンスメソッドと考えられる。(特異メソッド？)
+
+=> クラス名もインスタンスと考えると、クラスメソッドはそのクラスに定義された特異メソッドといえるから。
+```
+foo1 = Foo.new # Fooクラスのインスタンス
+def foo1.method_A
+  "foo1 only"
+end
+p foo1.method_A => "foo1 only"
+foo2 = Foo.new
+p foo2.method_B => NoMethodError
+```
+
 ```
 Class.method_defined? :new => true # Classのインスタンスメソッド
 String.method_defined? :new => false # Stringのインスタンスメソッドではない
@@ -179,11 +196,15 @@ class C
 end
 
 p C.singleton_class # #<Class:C>
-p C.singleton_class # #<Class:#Class:C>>
+p C.singleton_class.singleton_class # #<Class:#Class:C>>
 ```
 
 ### 特異クラスで`self`をつかう
 レシーバのオブジェクトを取得できる
+
+`オブジェクト.singleton_class`で特異クラスを取得可能。
+
+もしくは、特異クラスで`self`を参照するとレシーバのオブジェクトがとれる。
 
 ```
 class C
@@ -277,7 +298,7 @@ C.new.foo
 `methods.include? :メソッド名`で `true`となる
 
 ### prepend
-モジュールのメソッドを特異メソッドとして追加する
+モジュールのメソッドを特異メソッドとして追加する selfの下に追加(定義したクラスの下)
 
 ```
 module M1
@@ -291,58 +312,6 @@ class C
 end
 
 p C.ancestors => [M1, M2, C, Object, Kernel, BasicObject]
-```
-
-### module_eval
-[module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
-
-メソッドを動的に定義できて、ブロックを評価できる
-
-下記の場合は、ネストされた状態になく、トップレベルになる。
-```
-module A
-  B = 42
-
-  def f
-    21
-  end
-end
-
-A.module_eval do
-  def self.f
-    p B
-  end
-end
-
-B = 15
-
-A.f => 15
-```
-
-ブロックを利用しないかどうかで、トップレベルで定義するか変化する
-```
-# BLOCK: CONST is defined? false
-# BLOCK: CONST is defined? true
-# HERE_DOC: CONST is defined? true
-# HERE_DOC: CONST is defined? false
-
-mod = Module.new
-
-# ネストが変化しない
-mod.module_eval do
-  CONST_IN_BLOCK = 100
-end
-
-# ネストが変化する
-mod.module_eval(<<-EVAL)
-  CONST_IN_HERE_DOC = 100
-EVAL
-
-puts "BLOCK: CONST is defined? #{mod.const_defined?(:CONST_IN_BLOCK, false)}"
-puts "BLOCK: CONST is defined? #{Object.const_defined?(:CONST_IN_BLOCK, false)}"
-
-puts "HERE_DOC: CONST is defined? #{mod.const_defined?(:CONST_IN_HERE_DOC, false)}"
-puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, false)}"
 ```
 
 ### nesting
@@ -497,6 +466,31 @@ puts Object.const_defined? :EVAL_CONST # trueと表示される
 puts mod.const_defined? :EVAL_CONST # trueと表示される
 ```
 
+クラス変数はレキシカルに決定される。定数と同様。しかし、上位のスコープ(外側)まで探索を行いません。
+```
+module M
+  CONST = 100
+  @@val = 200
+end
+module M
+  p CONST => 100
+  p @@val => 200
+end
+```
+こちらだとエラーになる
+```
+module M
+  CONST = 100
+  @@val = 200
+end
+module M
+  class C
+    p CONST => 100
+    p @@val => NameError
+  end
+end
+```
+
 ## block_given?
 ブロックが渡される場合は、trueとなる。
 
@@ -530,12 +524,13 @@ m1 m2 { "hello" }
   - 同じファイルを1度のみロードする
   - `.rb` `.so`を自動補完する
   - ライブラリのロード
+  - バイナリエクステンションもロード可能
 
 ### `load`
   - 無条件にロードする
   - 自動補完なし
   - 設定ファイルの読み込み
-
+  - バイナリエクステンション読み込めない
 
 ```
 module Test
@@ -637,6 +632,20 @@ foo = Proc.new { |n|
 
 puts foo[2] * 2 => 12
 ```
+下記の処理の流れ
+```
+次のプログラムを実行するとどうなりますか
+
+val = 100
+
+def method(val) # ①最初に処理される。 yield(115)となるProcに渡される。
+  yield(15 + val)
+end
+
+_proc = Proc.new{|arg| val + arg } # ②argの引数には、yield(115)の仮引数が入る。
+
+p method(val, &_proc) => 215
+```
 
 ## super
 スーパークラスの同名メソッドが呼ばれる
@@ -659,6 +668,30 @@ class C < S
 end
 
 C.new(1,2,3)
+```
+
+### 無名の可変長引数
+`def initialize(*)`はその表し方
+
+`super`などを呼び出す場合、引数に気をつける必要がある。`initialize(*)`にすることで、 サブクラスの引数を意識する必要がなくなる。
+
+```
+class S
+  def initialize(*)
+    puts "S#initialize"
+  end
+end
+
+class C < S
+  def initialize(*args)
+    super
+    puts "C#initialize"
+  end
+end
+
+C.new(1,2,3,4,5) 
+=> S#initialize
+=> C#initialize
 ```
 
 ## 例外処理の確認
@@ -742,6 +775,7 @@ end
 
 ## Date Time DateTime
 全て、日付と時間を扱うクラス
+
 ### Date
 日付のみを扱うクラス。時刻情報は含まれない。タイムゾーンに依存に依存しない。
 
@@ -781,7 +815,7 @@ puts datetime  # 例: 2023-07-27T10:30:45+09:00
 
 `alias_method :new, :old` `alias_method "new", "old"` 
 
-**文字列かシンボルを受け取る**
+**文字列, シンボルを受け取る カンマ必要**
 ```
 class Human
   attr_reader :name
@@ -806,7 +840,9 @@ puts human.name
 ```
 
 ### alias
-メソッドやグローバル変数に別名をつけられる
+メソッドやグローバル変数に別名をつけられる 
+
+シンボル, $, 何もなしのパターンで変更可 カンマは不要
 
 `alias new old`  `alias :new :old`  `alias $new_global $old_global`
 
@@ -847,6 +883,8 @@ JavaScript Object Notationを扱うためのモジュール
 [公式 Fiberクラス](https://docs.ruby-lang.org/ja/latest/class/Fiber.html)
 
 Fiber#resume により子へコンテキストを切り替える
+
+=> Fiber.yieldが最後に実行した行からの再開、Fiber.newにしたブロックの最初の評価を行う。
 
 Fiber.yield により親へコンテキストを切り替える
 
@@ -987,8 +1025,63 @@ end
 foo 100 => エラーになる
 ```
 
+### module_eval
+[module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
+
+メソッドを動的に定義できて、ブロックを評価できる
+
+下記の場合は、ネストされた状態になく、トップレベルになる。
+```
+module A
+  B = 42
+
+  def f
+    21
+  end
+end
+
+A.module_eval do
+  def self.f
+    p B
+  end
+end
+
+B = 15
+
+A.f => 15
+```
+
+ブロックを利用しないかどうかで、トップレベルで定義するか変化する
+```
+mod = Module.new
+
+# ネストが変化しない
+mod.module_eval do
+  CONST_IN_BLOCK = 100
+end
+
+# ネストが変化する
+mod.module_eval(<<-EVAL)
+  CONST_IN_HERE_DOC = 100
+EVAL
+
+puts "BLOCK: CONST is defined? #{mod.const_defined?(:CONST_IN_BLOCK, false)}"
+puts "BLOCK: CONST is defined? #{Object.const_defined?(:CONST_IN_BLOCK, false)}"
+
+puts "HERE_DOC: CONST is defined? #{mod.const_defined?(:CONST_IN_HERE_DOC, false)}"
+puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, false)}"
+
+# BLOCK: CONST is defined? false
+# BLOCK: CONST is defined? true
+# HERE_DOC: CONST is defined? true
+# HERE_DOC: CONST is defined? false
+```
+
+## module_function
+メソッドをモジュール関数にする。 プライベートメソッドとモジュールの特異メソッドを同時に定義する
+
 ## freeze
-オブジェクトの破壊的変更を禁止する
+オブジェクトの破壊的変更を禁止する  代入は可能  自作クラスのインスタンス変数をfreezeしない限り、変更できる
 
 配列の場合、配列と配列の要素に`freeze`を使用しないと破壊的変更が可能になる
 ```
@@ -1032,3 +1125,16 @@ puts Hoge.new.to_s
 p Hoge.new  # inspectと同じ結果が出力される。
 print Hoge.new
 ```
+
+## マーシャリング
+オブジェクトをファイルやDBなどに保存できる形式に変換、または変換を戻すこと。
+
+オブジェクト(IO,File,Dir,Socket)や特異メソッド、無名のクラスやモジュールはマーシャリングできない。
+
+## Thread クラス
+プログラムの一連の処理のまとまりを指している。使うことで、平行プログラミングが可能になる。
+
+### 例外発生の対応
+ - Thread.abort_on_exceptionメソッドを`true`にする
+ - 特定のスレッドのabort_on_exceptionメソッドを`true`にする
+ - グローバル変数$DEBUGをtrueにし、プログラムを`-d`付きで実行する
