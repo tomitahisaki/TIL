@@ -298,7 +298,7 @@ C.new.foo
 `methods.include? :メソッド名`で `true`となる
 
 ### prepend
-モジュールのメソッドを特異メソッドとして追加する
+モジュールのメソッドを特異メソッドとして追加する selfの下に追加(定義したクラスの下)
 
 ```
 module M1
@@ -312,58 +312,6 @@ class C
 end
 
 p C.ancestors => [M1, M2, C, Object, Kernel, BasicObject]
-```
-
-### module_eval
-[module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
-
-メソッドを動的に定義できて、ブロックを評価できる
-
-下記の場合は、ネストされた状態になく、トップレベルになる。
-```
-module A
-  B = 42
-
-  def f
-    21
-  end
-end
-
-A.module_eval do
-  def self.f
-    p B
-  end
-end
-
-B = 15
-
-A.f => 15
-```
-
-ブロックを利用しないかどうかで、トップレベルで定義するか変化する
-```
-# BLOCK: CONST is defined? false
-# BLOCK: CONST is defined? true
-# HERE_DOC: CONST is defined? true
-# HERE_DOC: CONST is defined? false
-
-mod = Module.new
-
-# ネストが変化しない
-mod.module_eval do
-  CONST_IN_BLOCK = 100
-end
-
-# ネストが変化する
-mod.module_eval(<<-EVAL)
-  CONST_IN_HERE_DOC = 100
-EVAL
-
-puts "BLOCK: CONST is defined? #{mod.const_defined?(:CONST_IN_BLOCK, false)}"
-puts "BLOCK: CONST is defined? #{Object.const_defined?(:CONST_IN_BLOCK, false)}"
-
-puts "HERE_DOC: CONST is defined? #{mod.const_defined?(:CONST_IN_HERE_DOC, false)}"
-puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, false)}"
 ```
 
 ### nesting
@@ -516,6 +464,31 @@ end
 
 puts Object.const_defined? :EVAL_CONST # trueと表示される
 puts mod.const_defined? :EVAL_CONST # trueと表示される
+```
+
+クラス変数はレキシカルに決定される。定数と同様。しかし、上位のスコープ(外側)まで探索を行いません。
+```
+module M
+  CONST = 100
+  @@val = 200
+end
+module M
+  p CONST => 100
+  p @@val => 200
+end
+```
+こちらだとエラーになる
+```
+module M
+  CONST = 100
+  @@val = 200
+end
+module M
+  class C
+    p CONST => 100
+    p @@val => NameError
+  end
+end
 ```
 
 ## block_given?
@@ -842,7 +815,7 @@ puts datetime  # 例: 2023-07-27T10:30:45+09:00
 
 `alias_method :new, :old` `alias_method "new", "old"` 
 
-**文字列かシンボルを受け取る**
+**文字列, シンボルを受け取る カンマ必要**
 ```
 class Human
   attr_reader :name
@@ -867,7 +840,9 @@ puts human.name
 ```
 
 ### alias
-メソッドやグローバル変数に別名をつけられる
+メソッドやグローバル変数に別名をつけられる 
+
+シンボル, $, 何もなしのパターンで変更可 カンマは不要
 
 `alias new old`  `alias :new :old`  `alias $new_global $old_global`
 
@@ -1050,8 +1025,63 @@ end
 foo 100 => エラーになる
 ```
 
+### module_eval
+[module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
+
+メソッドを動的に定義できて、ブロックを評価できる
+
+下記の場合は、ネストされた状態になく、トップレベルになる。
+```
+module A
+  B = 42
+
+  def f
+    21
+  end
+end
+
+A.module_eval do
+  def self.f
+    p B
+  end
+end
+
+B = 15
+
+A.f => 15
+```
+
+ブロックを利用しないかどうかで、トップレベルで定義するか変化する
+```
+mod = Module.new
+
+# ネストが変化しない
+mod.module_eval do
+  CONST_IN_BLOCK = 100
+end
+
+# ネストが変化する
+mod.module_eval(<<-EVAL)
+  CONST_IN_HERE_DOC = 100
+EVAL
+
+puts "BLOCK: CONST is defined? #{mod.const_defined?(:CONST_IN_BLOCK, false)}"
+puts "BLOCK: CONST is defined? #{Object.const_defined?(:CONST_IN_BLOCK, false)}"
+
+puts "HERE_DOC: CONST is defined? #{mod.const_defined?(:CONST_IN_HERE_DOC, false)}"
+puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, false)}"
+
+# BLOCK: CONST is defined? false
+# BLOCK: CONST is defined? true
+# HERE_DOC: CONST is defined? true
+# HERE_DOC: CONST is defined? false
+```
+
+## module_function
+メソッドをモジュール関数にする。 プライベートメソッドとモジュールの特異メソッドを同時に定義する
+
 ## freeze
-オブジェクトの破壊的変更を禁止する
+オブジェクトの破壊的変更を禁止する  代入は可能  自作クラスのインスタンス変数をfreezeしない限り、変更できる
 
 配列の場合、配列と配列の要素に`freeze`を使用しないと破壊的変更が可能になる
 ```
@@ -1100,3 +1130,11 @@ print Hoge.new
 オブジェクトをファイルやDBなどに保存できる形式に変換、または変換を戻すこと。
 
 オブジェクト(IO,File,Dir,Socket)や特異メソッド、無名のクラスやモジュールはマーシャリングできない。
+
+## Thread クラス
+プログラムの一連の処理のまとまりを指している。使うことで、平行プログラミングが可能になる。
+
+### 例外発生の対応
+ - Thread.abort_on_exceptionメソッドを`true`にする
+ - 特定のスレッドのabort_on_exceptionメソッドを`true`にする
+ - グローバル変数$DEBUGをtrueにし、プログラムを`-d`付きで実行する
