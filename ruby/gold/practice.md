@@ -179,13 +179,6 @@ p foo2.method_B => NoMethodError
 ```
 
 ```
-Class.method_defined? :new => true # Classのインスタンスメソッド
-String.method_defined? :new => false # Stringのインスタンスメソッドではない
-Class.singleton_class.method_defined? :new => true # レシーバの特異クラス(クラスメソッド)を返す
-String.singleton_class.method_defined? :new => true # 上記と同様
-```
-
-```
 m = C.method :singleton_class
 p m.owner # Kernel
 ```
@@ -224,8 +217,12 @@ end
 p C.singleton_class
 ```
 
-
 ## Module
+### クラスメソッドを定義するには
+ - `extend self`として、自身を特異メソッドとして追加する
+ - `module_function :メソッド名`として、特異メソッドに定義する
+ - `class << self`として、自身をクラスメソッドに定義する。
+ 
 ### extend
 引数に指定したモジュールのメソッドを特異メソッドとして追加する
 
@@ -323,6 +320,15 @@ module SuperMod
     p Module.nesting => [SuperMod::BaseMod, SuperMod]
   end
 end
+```
+
+### method_defined?
+モジュールにインスタンスメソッド`name`が定義されており、可視性が`public` `protected` のときに`trueを返す`
+```
+Class.method_defined? :new => true # Classのインスタンスメソッド
+String.method_defined? :new => false # Stringのインスタンスメソッドではない
+Class.singleton_class.method_defined? :new => true # レシーバの特異クラス(クラスメソッド)を返す
+String.singleton_class.method_defined? :new => true # 上記と同様
 ```
 
 ## Refinement
@@ -1025,7 +1031,7 @@ end
 foo 100 => エラーになる
 ```
 
-### module_eval
+## module_eval
 [module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
 
 メソッドを動的に定義できて、ブロックを評価できる
@@ -1092,6 +1098,22 @@ ary.each do |n|
 end
 
 p ary => ["A", "B", "C"]
+```
+下記は、各要素の破壊的な変更を禁止している。`upcase`は破壊的ではないので、処理される。
+
+もし、`upcase!`だと例外が発生する
+```
+characters = ["a", "b", "c"]
+
+characters.each do |chr|
+  chr.freeze
+end
+
+upcased = characters.map do |chr|
+  chr.upcase 
+end
+
+p upcased => ["A", "B", "C"]
 ```
 
 ## Lazyクラス
