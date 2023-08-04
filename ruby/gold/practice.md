@@ -1,5 +1,5 @@
 # 不正解ポイント
-## protectメソッド
+## protectedメソッド
 自クラスかサブクラスのレシーバーへ公開されているが、それ以外には隠蔽されている。
 
 仲間クラス(自クラス、サブクラス)から参照するためにメソッドとしては公開されている。
@@ -179,13 +179,6 @@ p foo2.method_B => NoMethodError
 ```
 
 ```
-Class.method_defined? :new => true # Classのインスタンスメソッド
-String.method_defined? :new => false # Stringのインスタンスメソッドではない
-Class.singleton_class.method_defined? :new => true # レシーバの特異クラス(クラスメソッド)を返す
-String.singleton_class.method_defined? :new => true # 上記と同様
-```
-
-```
 m = C.method :singleton_class
 p m.owner # Kernel
 ```
@@ -224,14 +217,18 @@ end
 p C.singleton_class
 ```
 
-
 ## Module
+### クラスメソッドを定義するには
+ - `extend self`として、自身を特異メソッドとして追加する
+ - `module_function :メソッド名`として、特異メソッドに定義する
+ - `class << self`として、自身をクラスメソッドに定義する。
+
 ### extend
 引数に指定したモジュールのメソッドを特異メソッドとして追加する
 
 `methods.include? :メソッド名` で特異メソッドがあるかbooleanで返す
 
-=> 特異メソッドだとfalseになる。
+=> 特異メソッドだとtrueになる。
 
 `methods`で特異メソッドの一覧を取得
 
@@ -295,8 +292,21 @@ C.new.foo
 
 `instance_methods`で取得可能
 
-`methods.include? :メソッド名`で `true`となる
+`methods.include? :メソッド名`で `false`となる
 
+```
+module M
+  def class_m
+    "class_m"
+  end
+end
+
+class C
+  include M  # extend M だと true
+end
+
+p C.methods.include? :class_m
+```
 ### prepend
 モジュールのメソッドを特異メソッドとして追加する selfの下に追加(定義したクラスの下)
 
@@ -323,6 +333,15 @@ module SuperMod
     p Module.nesting => [SuperMod::BaseMod, SuperMod]
   end
 end
+```
+
+### method_defined?
+モジュールにインスタンスメソッド`name`が定義されており、可視性が`public` `protected` のときに`trueを返す`
+```
+Class.method_defined? :new => true # Classのインスタンスメソッド
+String.method_defined? :new => false # Stringのインスタンスメソッドではない
+Class.singleton_class.method_defined? :new => true # レシーバの特異クラス(クラスメソッド)を返す
+String.singleton_class.method_defined? :new => true # 上記と同様
 ```
 
 ## Refinement
@@ -726,7 +745,7 @@ end
 hoge(1,2,3,4) do |*args|
   p args.length > 0 ? "hello" : args
 end
-```````
+```
 
 `&block`を仮引数の最後にすることで、処理される。
 ```
@@ -972,6 +991,8 @@ p C.new.greet => "Hello World"
 ```
 
 ## instance_eval
+オブジェクトの特異クラスにインスタンスメソッドを定義したり、オブジェクト自身が参照できるインスタンス変数を定義、上書きできる
+
 引数に文字列を指定すると、ネスト状態は特異クラスとなる
 
 ```
@@ -1007,30 +1028,42 @@ puts block.size => 0
 puts _eval.size => 1
 ```
 
-## arg
-キーワード引数のこと。省略できないので注意
+
+## ブロックと文字列を渡すときの違い
+文字列の場合、定数とクラス変数のスコープは、自身のモジュール定義内で同じスコープとなる
+
+ブロックの場合は、定数とクラス変数のスコープはブロックの外側になる。
+
+
+下記のように定数を呼び出す最後の2行のように、定数のレベルが変化するので、スコープがどこにあるのか注意する必要がある。
 ```
-def foo(arg:)
-  puts arg
+class Foo; end
+
+# ネストが変化しない
+Foo.class_eval do
+  CONST_IN_BLOCK = 100
 end
 
-foo arg: 100 # このように引数を渡すことが絶対
-```
-下記のコードでは、`ArgumentError: missing keyword: arg`となる
-```
-def foo(arg:)
-  puts arg
-end
+# ネストが変化する
+Foo.class_eval(<<-EVAL)
+  CONST_IN_HERE_DOC = 200
+EVAL
 
-foo 100 => エラーになる
-```
+puts "BLOCK: CONST is defined? #{Foo.const_defined?(:CONST_IN_BLOCK, false)}"
+puts "BLOCK: CONST is defined? #{Object.const_defined?(:CONST_IN_BLOCK, false)}"
 
-### module_eval
+puts "HERE_DOC: CONST is defined? #{Foo.const_defined?(:CONST_IN_HERE_DOC, false)}"
+puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, false)}"
+
+p CONST_IN_BLOCK => 100
+p Foo::CONST_IN_HERE_DOC => 200
+```
+## module_eval
 [module_evalとは](https://docs.ruby-lang.org/ja/latest/method/Module/i/class_eval.html)
 
-メソッドを動的に定義できて、ブロックを評価できる
+`class_eval`のエイリアス メソッドを動的に定義できて、ブロックを評価できる
 
-下記の場合は、ネストされた状態になく、トップレベルになる。
+下記の場合は、ネスト状態が変化しない。
 ```
 module A
   B = 42
@@ -1042,6 +1075,7 @@ end
 
 A.module_eval do
   def self.f
+    p Module.nesting # => []
     p B
   end
 end
@@ -1049,6 +1083,29 @@ end
 B = 15
 
 A.f => 15
+```
+
+文字列を引数にすると、**レシーバ**のスコープで評価される 
+
+```
+module A
+  B = 42
+
+  def f
+    21
+  end
+end
+
+A.module_eval(<<-CODE)
+  def self.f
+    p Module.nesting # => [A]
+    p B
+  end
+CODE
+
+B = 15
+
+A.f => 42 # A::Bの出力となる
 ```
 
 ブロックを利用しないかどうかで、トップレベルで定義するか変化する
@@ -1077,8 +1134,52 @@ puts "HERE_DOC: CONST is defined? #{Object.const_defined?(:CONST_IN_HERE_DOC, fa
 # HERE_DOC: CONST is defined? false
 ```
 
+## class_eval
+クラスにインスタンスや特異メソッドを追加したり、そのクラス自身のインスタンス変数やクラス変数を定義、上書きできる
+```
+class Foo
+  def initialize
+    @x = 1
+  end
+end
+
+Foo.class_eval do
+  @y = 2
+  @@a = 3
+  def output
+    @x
+  end
+end
+
+foo = Foo.new
+puts foo.instance_variables => @x
+puts Foo.instance_variables => @y
+puts Foo.class_variables => @@a
+puts foo.output => 1
+puts foo.instance_methods.grep(/output/) => output
+```
+
 ## module_function
 メソッドをモジュール関数にする。 プライベートメソッドとモジュールの特異メソッドを同時に定義する
+
+## arg
+キーワード引数のこと。省略できないので注意
+```
+def foo(arg:)
+  puts arg
+end
+
+foo arg: 100 # このように引数を渡すことが絶対
+```
+下記のコードでは、`ArgumentError: missing keyword: arg`となる
+```
+def foo(arg:)
+  puts arg
+end
+
+foo 100 => エラーになる
+```
+
 
 ## freeze
 オブジェクトの破壊的変更を禁止する  代入は可能  自作クラスのインスタンス変数をfreezeしない限り、変更できる
@@ -1092,6 +1193,22 @@ ary.each do |n|
 end
 
 p ary => ["A", "B", "C"]
+```
+下記は、各要素の破壊的な変更を禁止している。`upcase`は破壊的ではないので、処理される。
+
+もし、`upcase!`だと例外が発生する
+```
+characters = ["a", "b", "c"]
+
+characters.each do |chr|
+  chr.freeze
+end
+
+upcased = characters.map do |chr|
+  chr.upcase 
+end
+
+p upcased => ["A", "B", "C"]
 ```
 
 ## Lazyクラス
