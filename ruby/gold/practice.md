@@ -1,5 +1,5 @@
 # 不正解ポイント
-## protectメソッド
+## protectedメソッド
 自クラスかサブクラスのレシーバーへ公開されているが、それ以外には隠蔽されている。
 
 仲間クラス(自クラス、サブクラス)から参照するためにメソッドとしては公開されている。
@@ -228,7 +228,7 @@ p C.singleton_class
 
 `methods.include? :メソッド名` で特異メソッドがあるかbooleanで返す
 
-=> 特異メソッドだとfalseになる。
+=> 特異メソッドだとtrueになる。
 
 `methods`で特異メソッドの一覧を取得
 
@@ -292,8 +292,21 @@ C.new.foo
 
 `instance_methods`で取得可能
 
-`methods.include? :メソッド名`で `true`となる
+`methods.include? :メソッド名`で `false`となる
 
+```
+module M
+  def class_m
+    "class_m"
+  end
+end
+
+class C
+  include M  # extend M だと true
+end
+
+p C.methods.include? :class_m
+```
 ### prepend
 モジュールのメソッドを特異メソッドとして追加する selfの下に追加(定義したクラスの下)
 
@@ -1050,7 +1063,7 @@ p Foo::CONST_IN_HERE_DOC => 200
 
 `class_eval`のエイリアス メソッドを動的に定義できて、ブロックを評価できる
 
-下記の場合は、ネストされた状態になく、トップレベルになる。
+下記の場合は、ネスト状態が変化しない。
 ```
 module A
   B = 42
@@ -1062,6 +1075,7 @@ end
 
 A.module_eval do
   def self.f
+    p Module.nesting # => []
     p B
   end
 end
@@ -1069,6 +1083,29 @@ end
 B = 15
 
 A.f => 15
+```
+
+文字列を引数にすると、**レシーバ**のスコープで評価される 
+
+```
+module A
+  B = 42
+
+  def f
+    21
+  end
+end
+
+A.module_eval(<<-CODE)
+  def self.f
+    p Module.nesting # => [A]
+    p B
+  end
+CODE
+
+B = 15
+
+A.f => 42 # A::Bの出力となる
 ```
 
 ブロックを利用しないかどうかで、トップレベルで定義するか変化する
