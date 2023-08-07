@@ -310,6 +310,8 @@ p C.methods.include? :class_m
 ### prepend
 モジュールのメソッドを特異メソッドとして追加する selfの下に追加(定義したクラスの下)
 
+`Refinement`のほうが優先される
+
 ```
 module M1
 end
@@ -347,9 +349,13 @@ String.singleton_class.method_defined? :new => true # 上記と同様
 ## Refinement
 メソッドの変更をグローバルにしないために、モジュール定義の中だけで呼び出す 
 
+無名のモジュールが作成される
+
 有効な部分を絞り込んでおく。(ファイルの終わりまでなど)
 
 これがないと、メソッド名が重複などしたときに、他のメソッドやコードを破壊する可能性がある
+
+`prepend`よりも優先して探索が行われる
 
 ### using
 Refinementを有効にするために使用。
@@ -447,6 +453,29 @@ puts C.new.m1 # 200
 puts C.new.m2 # # "Hello, world" 
 ```
 
+クラスメソッドを再定義する場合は、`singleton_class`をつかう
+
+=> ***`self.m1`のような形でクラスメソッドを再定義できないので注意***
+```
+class C
+  def self.m1
+    'C.m1'
+  end
+end
+
+module M
+  refine C.singleton_class do
+    def m1
+      'C.m1 in M'
+    end
+  end
+end
+
+using M
+
+puts C.m1 # C.m1 in M
+```
+
 ## Classクラス
 `new`メソッドは、Classクラスのインスタンスメソッド。
 
@@ -506,6 +535,32 @@ module M
   class C
     p CONST => 100
     p @@val => NameError
+  end
+end
+```
+定数がネストしている場合は、内側から順に定数の探索が始まります。
+
+レキシカルスコープに定数がない場合は、スーパークラスの探索を行う
+```
+module M1
+  class C1
+    CONST = "001"
+  end
+
+  class C2 < C1
+    CONST = "010"
+
+    module M2
+      CONST = "011"
+
+      class Ca
+        CONST = "100"
+      end
+
+      class Cb < Ca
+        p CONST # => M2::CONST "011"が出力される
+      end
+    end
   end
 end
 ```
