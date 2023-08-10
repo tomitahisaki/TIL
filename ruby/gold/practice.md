@@ -883,6 +883,16 @@ puts datetime  # 例: 2023-07-27T10:30:45+09:00
 
 ```
 
+ +1 すると、
+
+DateTime Dateクラスは、1日後の時刻を表示する
+
+Timeクラスは、1秒後の時刻を示す
+
+>> 1 とすると、
+
+1ヶ月後の数値を返す
+
 ## alias式
 ### alias_method 
 メソッド内でメソッドに別名を付ける場合は、Module#alias_methodを使う
@@ -1045,45 +1055,6 @@ end
 p C.new.greet => "Hello World"
 ```
 
-## instance_eval
-オブジェクトの特異クラスにインスタンスメソッドを定義したり、オブジェクト自身が参照できるインスタンス変数を定義、上書きできる
-
-引数に文字列を指定すると、ネスト状態は特異クラスとなる
-
-```
-module M
-  CONST = "Hello, world"
-end
-
-M.instance_eval(<<-CODE)
-  def say
-    CONST
-  end
-CODE
-
-p M::say => "Hello World"
-```
-
-ブロックであれば、ネストは定義された場所のネスト。文字列であれば、レシーバのコンテキストで評価
-```
-m = Module.new
-
-m.instance_eval do
-  m.instance_variable_set :@block, Module.nesting
-end
-
-m.instance_eval(<<-EVAL)
-  m.instance_variable_set :@eval,  Module.nesting
-EVAL
-
-block = m.instance_variable_get :@block
-_eval = m.instance_variable_get :@eval
-
-puts block.size => 0
-puts _eval.size => 1
-```
-
-
 ## ブロックと文字列を渡すときの違い
 文字列の場合、定数とクラス変数のスコープは、自身のモジュール定義内で同じスコープとなる
 
@@ -1217,6 +1188,44 @@ puts foo.instance_methods.grep(/output/) => output
 ## module_function
 メソッドをモジュール関数にする。 プライベートメソッドとモジュールの特異メソッドを同時に定義する
 
+## instance_eval
+オブジェクトの特異クラスにインスタンスメソッドを定義したり、オブジェクト自身が参照できるインスタンス変数を定義、上書きできる
+
+引数に文字列を指定すると、ネスト状態は特異クラスとなる
+
+```
+module M
+  CONST = "Hello, world"
+end
+
+M.instance_eval(<<-CODE)
+  def say
+    CONST
+  end
+CODE
+
+p M::say => "Hello World"
+```
+
+ブロックであれば、ネストは定義された場所のネスト。文字列であれば、レシーバのコンテキストで評価
+```
+m = Module.new
+
+m.instance_eval do
+  m.instance_variable_set :@block, Module.nesting
+end
+
+m.instance_eval(<<-EVAL)
+  m.instance_variable_set :@eval,  Module.nesting
+EVAL
+
+block = m.instance_variable_get :@block
+_eval = m.instance_variable_get :@eval
+
+puts block.size => 0
+puts _eval.size => 1
+```
+
 ## arg
 キーワード引数のこと。省略できないので注意
 ```
@@ -1234,7 +1243,6 @@ end
 
 foo 100 => エラーになる
 ```
-
 
 ## freeze
 オブジェクトの破壊的変更を禁止する  代入は可能  自作クラスのインスタンス変数をfreezeしない限り、変更できる
@@ -1276,6 +1284,16 @@ p (1..10).lazy.map{ |num|
  num * 2
  }.take(3).inject(0, &:+) => 12
 ```
+
+### freezeの特徴
+クラスだけでなくて、モジュールもfreeze可能
+
+`clone`は`freeze` `taint` 特異メソッドなどの情報も含めた完全な複製を作成する
+
+## clone 
+`freeze`や特異メソッドのなどの情報を含めてコピーする
+
+参照先のオブジェクトはコピーされない
 
 ## Objectクラス
 様々なクラスのスーパークラス
