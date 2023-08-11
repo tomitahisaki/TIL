@@ -126,21 +126,78 @@
 # p $2
 # p $3
 
+# m = Module.new
 
-class A
-  def foo
-    self.bar
-  end
+# CONST = "Constant in Toplevel"
 
-  private
+# _proc = Proc.new do
+#   CONST = "Constant in Proc"
+# end
 
-  def bar
-    "baz"
-  end
+# m.instance_eval(<<-EOS)
+#   CONST = "Constant in Module instance"
 
-  def self.bar
-    "quux"
-  end
+#   def const
+#     CONST
+#   end
+# EOS
+
+# m.module_eval(&_proc)
+
+# p m.const
+
+# module M1
+#   def method_1
+#     __method__
+#   end
+# end
+
+# class C
+#   include M1
+# end
+
+# p C.new.method_1
+
+# module M2
+#   def method_2
+#     __method__
+#   end
+# end
+
+# module M1
+#   include M2
+# end
+
+# p C.ancestors
+
+# module M
+#   def refer_const
+#     CONST
+#   end
+# end
+
+# module E
+#   CONST = '010'
+# end
+
+# class D
+#   CONST = "001"
+# end
+
+# class C < D
+#   include E
+#   include M
+#   CONST = '100'
+# end
+
+# c = C.new
+# p c.refer_const
+
+mod = Module.new
+
+mod.module_eval do
+  EVAL_CONST = 100
 end
 
-puts A.bar
+puts "EVAL_CONST is defined? #{mod.const_defined?(:EVAL_CONST)}"
+puts "EVAL_CONST is defined? #{Object.const_defined?(:EVAL_CONST)}"
