@@ -511,7 +511,7 @@ mod.module_eval do
 end
 
 puts Object.const_defined? :EVAL_CONST # trueと表示される
-puts mod.const_defined? :EVAL_CONST # trueと表示される
+puts mod.const_defined? :EVAL_CONST # trueと表示される falseオプション使うとfalseになる
 ```
 
 クラス変数はレキシカルに決定される。定数と同様。しかし、上位のスコープ(外側)まで探索を行いません。
@@ -561,6 +561,24 @@ module M1
         p CONST # => M2::CONST "011"が出力される
       end
     end
+  end
+end
+```
+
+### レキシカルスコープと継承チェーンの違い
+これだと、ネスト内の定数がレキシカルスコープとなる
+
+継承チェーンは`Child < Parent`の部分ですが、優先されない
+```
+class Parent
+  CONST = 'constant in ParentClass'
+end
+
+module Space
+  CONST = 'constant in Space'
+
+  class Child < Parent
+    P CONST # => constant in Space'
   end
 end
 ```
@@ -1019,7 +1037,7 @@ C.new.public_methods.include? :initialize => false
 ## ::演算子
 `::`があると、トップレベルから定数の探索を行います。
 
-モジュールMにある`::C`はトップレベルにあるものをさすので、greetメソッドの`CONST`はクラスCにはない
+モジュールMにある`::C`はトップレベルにあるものをさすので、greetメソッドの`CONST`はクラスCにはない greetメソッドもトップレベルにしか定義されない？
 
 Baseを継承しているので、そこにある定数`CONST`を出力する
 ```
@@ -1053,6 +1071,26 @@ module M
 end
 
 p C.new.greet => "Hello World"
+```
+上記コードと同じ部分は省略した
+
+下記のように`ancestors`で探してみると、`M::C`のネームスペースで定義したところから、継承している( `Baseクラス`を引き継いだ`Cクラス`とは違う)
+
+なので、`M::C.new.greet`とすると、`M::C`クラス内でmethodは定義されているから、`Good evening`と出力される
+```
+$~省略~$
+
+module M
+  class C
+    p C.ancestors => [M::C, Object, Kernel, BasicObject]
+    def greet
+      CONST
+    end
+  end
+end
+
+p C.new.greet  => 例外が発生する undefined method `greet' for #<C:0x0000000100ed6678> (NoMethodError) 
+p M::C.new.greet => 'Good evening'
 ```
 
 ## ブロックと文字列を渡すときの違い

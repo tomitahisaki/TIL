@@ -193,11 +193,53 @@
 # c = C.new
 # p c.refer_const
 
-mod = Module.new
-
-mod.module_eval do
-  EVAL_CONST = 100
+class Base
+  CONST = "Hello, world"
 end
 
-puts "EVAL_CONST is defined? #{mod.const_defined?(:EVAL_CONST)}"
-puts "EVAL_CONST is defined? #{Object.const_defined?(:EVAL_CONST)}"
+class C < Base
+end
+
+module P
+  CONST = "Good, night"
+end
+
+class Base
+  prepend P
+end
+
+module M
+  class C
+    CONST = "Good, evening"
+  end
+end
+
+module M
+  class P::C
+    def greet
+      CONST
+    end
+  end
+end
+
+p P::C.new.greet
+
+# class C
+#   CONST = "Good, night"
+# end
+
+# module M
+#   CONST = "Good, evening"
+# end
+
+# module M
+#   class C
+#     CONST = "Hello, world"
+#   end
+# end
+
+# module M
+#   class ::C
+#     p CONST
+#   end
+# end
