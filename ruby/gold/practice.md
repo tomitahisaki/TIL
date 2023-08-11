@@ -511,7 +511,7 @@ mod.module_eval do
 end
 
 puts Object.const_defined? :EVAL_CONST # trueと表示される
-puts mod.const_defined? :EVAL_CONST # trueと表示される
+puts mod.const_defined? :EVAL_CONST # trueと表示される falseオプション使うとfalseになる
 ```
 
 クラス変数はレキシカルに決定される。定数と同様。しかし、上位のスコープ(外側)まで探索を行いません。
@@ -561,6 +561,24 @@ module M1
         p CONST # => M2::CONST "011"が出力される
       end
     end
+  end
+end
+```
+
+### レキシカルスコープと継承チェーンの違い
+これだと、ネスト内の定数がレキシカルスコープとなる
+
+継承チェーンは`Child < Parent`の部分ですが、優先されない
+```
+class Parent
+  CONST = 'constant in ParentClass'
+end
+
+module Space
+  CONST = 'constant in Space'
+
+  class Child < Parent
+    P CONST # => constant in Space'
   end
 end
 ```
