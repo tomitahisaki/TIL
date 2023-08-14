@@ -123,6 +123,61 @@ class C
 end
 ```
 
+### 定数の探索
+レキシカルスコープが利用される
+
+Moduleの中身から探索が始まるが、親クラス`Base`の見つかるタイミングによる
+
+モジュールの中で、先に`Base`クラスを書くと、レキシカルスコープにより、Scope内でBaseを見つけるので、`Scope::Base`として解釈している
+```
+class Base
+  def name
+    p 'Base#name'
+  end
+end
+
+module Scope
+  class Base
+    def name
+      p 'Scope::Base#name'
+    end
+  end
+
+  class Inherited < Base # クラスScope::Baseとして解釈される
+    def name
+      p 'Scope::Inherited#name'
+      super
+    end
+  end
+end
+```
+先に、`Base`クラスを引き継いだ`Inherited`クラスを書いた場合、モジュール内で探索しても見つからないので、トップレベルにある`Base`クラスを参照する
+```
+class Base
+  def name
+    p 'Base#name'
+  end
+end
+
+module Scope
+  class Inherited < Base # トップレベルにあるクラスBaseとして解釈される
+    def name
+      p 'Scope::Inherited#name'
+      super
+    end
+  end
+
+  class Base
+    def name
+      p 'Scope::Base#name'
+    end
+  end
+end
+
+inherited = Scope::Inherited.new
+inherited.name
+```
+
 ## singleton 特異クラス
 特異クラス 指定したインスタンスだけに適用される特別なクラス。[公式](https://docs.ruby-lang.org/ja/latest/class/Singleton.html)
 
@@ -239,6 +294,22 @@ extend self
 ```
 ```
 extend Parent
+```
+
+`extend`でモジュールを組み込んだ際の、継承ツリー(特異メソッドになる？)
+```
+module Mixin
+  def greet
+    puts "Hello World!"
+  end
+end
+
+class SomeClass
+  extend Mixin
+end
+
+p SomeClass.singleton_class.ancestors
+=> [#<Class:SomeClass>, Mixin, #<Class:Object>, #<Class:BasicObject>, Class, Module, Object, Kernel, BasicObject]
 ```
 
 ### include
@@ -361,6 +432,8 @@ String.singleton_class.method_defined? :new => true # 上記と同様
 Refinementを有効にするために使用。
 
 使う場所によっては、スコープ外となり無効となる
+
+クラス内で定義した場合、クラスオープンのときのみ有効
 ```
 class C
   def m1
@@ -1264,6 +1337,56 @@ puts block.size => 0
 puts _eval.size => 1
 ```
 
+## module_evalとinstance_evalの違い
+特異クラスで定義できるかどうか
+
+`module_eval`は`const`メソッドを特異クラスで定義していない
+```
+m = Module.new
+
+CONST = "Constant in Toplevel"
+
+_proc = Proc.new do
+  CONST = "Constant in Proc"
+end
+
+m.module_eval(<<-EOS)
+  CONST = "Constant in Module instance"
+
+  def const
+    CONST
+  end
+EOS
+
+m.module_eval(&_proc)
+
+p m.const => 例外の発生 undefined method `const' for #<Module:0x0000000102a53cc0> (NoMethodError)
+```
+メソッドを使うには、`module_function`を使って、特異メソッドにも定義させるか
+
+`instance_eval`に書き換えて、特異クラスに定義するか
+```
+m = Module.new
+
+CONST = "Constant in Toplevel"
+
+_proc = Proc.new do
+  CONST = "Constant in Proc"
+end
+
+m.instance_eval(<<-EOS)
+  CONST = "Constant in Module instance"
+
+  def const
+    CONST
+  end
+EOS
+
+m.module_eval(&_proc)
+
+p m.const => "Constant in Module instance"
+```
+
 ## arg
 キーワード引数のこと。省略できないので注意
 ```
@@ -1310,6 +1433,16 @@ upcased = characters.map do |chr|
 end
 
 p upcased => ["A", "B", "C"]
+```
+
+```
+ary_freeze = [1,2,3].freeze
+ary_freeze << [4]
+p ary_freeze # => can't modify frozen Array: [1, 2, 3] (FrozenError)
+
+ary_non_freeze = [1,2,3].freeze
+ary_non_freeze += [4]
+p ary_non_freeze # => [1,2,3,4]
 ```
 
 ## Lazyクラス
@@ -1366,3 +1499,4 @@ print Hoge.new
  - Thread.abort_on_exceptionメソッドを`true`にする
  - 特定のスレッドのabort_on_exceptionメソッドを`true`にする
  - グローバル変数$DEBUGをtrueにし、プログラムを`-d`付きで実行する
+

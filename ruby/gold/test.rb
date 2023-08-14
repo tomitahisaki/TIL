@@ -193,36 +193,36 @@
 # c = C.new
 # p c.refer_const
 
-class Base
-  CONST = "Hello, world"
-end
+# class Base
+#   CONST = "Hello, world"
+# end
 
-class C < Base
-end
+# class C < Base
+# end
 
-module P
-  CONST = "Good, night"
-end
+# module P
+#   CONST = "Good, night"
+# end
 
-class Base
-  prepend P
-end
+# class Base
+#   prepend P
+# end
 
-module M
-  class C
-    CONST = "Good, evening"
-  end
-end
+# module M
+#   class C
+#     CONST = "Good, evening"
+#   end
+# end
 
-module M
-  class P::C
-    def greet
-      CONST
-    end
-  end
-end
+# module M
+#   class ::C
+#     def greet
+#       CONST
+#     end
+#   end
+# end
 
-p P::C.new.greet
+# p C.new.greet
 
 # class C
 #   CONST = "Good, night"
@@ -243,3 +243,20 @@ p P::C.new.greet
 #     p CONST
 #   end
 # end
+
+module M
+  def self.append_features(include_class_name)
+    puts "append_features"
+    super # このsuperを書かないとエラー発生
+  end
+  def func
+    p "Hello World"
+  end
+end
+
+class C
+  include M
+end
+
+C.new.func
+
