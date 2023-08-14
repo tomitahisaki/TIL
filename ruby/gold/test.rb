@@ -244,19 +244,57 @@
 #   end
 # end
 
-module M
-  def self.append_features(include_class_name)
-    puts "append_features"
-    super # このsuperを書かないとエラー発生
-  end
-  def func
-    p "Hello World"
-  end
+# module M
+#   def self.append_features(include_class_name)
+#     puts "append_features"
+#     super # このsuperを書かないとエラー発生
+#   end
+#   def func
+#     p "Hello World"
+#   end
+# end
+
+# class C
+#   include M
+# end
+
+# C.new.func
+
+# module M
+#   @@val = 75
+#   puts "M"
+#   p @@val #=> モジュールで一番上の定義 M.class_variable_get(:@@val) 75
+#   class Parent
+#     @@val = 100
+#     puts "Parent" 
+#     p @@val #=> モジュール一番上で定義されたものとは共通でない M::Parent.class_variable_get(:@@val) 100
+#   end
+
+#   class Child < Parent
+#     @@val += 50
+#     puts "Child < Parent"
+#     p @@val # => M::Parent.class_variable_get(:@@val) 150
+#   end
+
+#   if Child < Parent
+#     @@val += 25
+#     puts "hi1"
+#     p @@val #=> M.class_variable_get(:@@val) 100
+#   else
+#     @@val += 30
+#     puts "hi2"
+#   end
+# end
+
+# p M::Parent.class_variable_get(:@@val) # => 150
+# p M.class_variable_get(:@@val) # => 100
+
+def foo(n)
+  n ** n
 end
 
-class C
-  include M
-end
+foo = Proc.new { |n|
+  n * 3
+}
 
-C.new.func
-
+puts foo (2) * 2
