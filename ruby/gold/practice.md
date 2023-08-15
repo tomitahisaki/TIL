@@ -1500,3 +1500,35 @@ print Hoge.new
  - 特定のスレッドのabort_on_exceptionメソッドを`true`にする
  - グローバル変数$DEBUGをtrueにし、プログラムを`-d`付きで実行する
 
+## クラス変数
+定数の探索について検証
+```
+module M
+  @@val = 75
+  puts "M"
+  p @@val #=> モジュールで一番上の定義 M.class_variable_get(:@@val) 75
+  class Parent
+    @@val = 100
+    puts "Parent" 
+    p @@val #=> モジュール一番上で定義されたものとは共通でない M::Parent.class_variable_get(:@@val) 100
+  end
+
+  class Child < Parent
+    @@val += 50
+    puts "Child < Parent"
+    p @@val # => M::Parent.class_variable_get(:@@val) 150
+  end
+
+  if Child < Parent
+    @@val += 25
+    puts "hi1"
+    p @@val #=> M.class_variable_get(:@@val) 100
+  else
+    @@val += 30
+    puts "hi2"
+  end
+end
+
+p M::Parent.class_variable_get(:@@val) # => 150
+p M.class_variable_get(:@@val) # => 100
+```
