@@ -288,7 +288,3 @@
 
 # p M::Parent.class_variable_get(:@@val) # => 150
 # p M.class_variable_get(:@@val) # => 100
-def fx(*args)
-  p(args)
-end
-fx(["apple", "banana", "carrot"])
