@@ -288,13 +288,7 @@
 
 # p M::Parent.class_variable_get(:@@val) # => 150
 # p M.class_variable_get(:@@val) # => 100
-
-def foo(n)
-  n ** n
+def fx(*args)
+  p(args)
 end
-
-foo = Proc.new { |n|
-  n * 3
-}
-
-puts foo (2) * 2
+fx(["apple", "banana", "carrot"])

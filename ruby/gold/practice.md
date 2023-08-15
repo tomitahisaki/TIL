@@ -1337,7 +1337,7 @@ puts block.size => 0
 puts _eval.size => 1
 ```
 
-## module_evalとinstance_evalの違い
+## module_eval(class_eval)とinstance_evalの違い
 特異クラスで定義できるかどうか
 
 `module_eval`は`const`メソッドを特異クラスで定義していない
@@ -1465,6 +1465,12 @@ p (1..10).lazy.map{ |num|
 `freeze`や特異メソッドのなどの情報を含めてコピーする
 
 参照先のオブジェクトはコピーされない
+
+### 似たメソッドの特徴
+ - Object#dupはオブジェクトの特異メソッドをコピーしません。
+ - Marshal.dumpは特異メソッドをもつオブジェクトをシリアライズできません。
+ - Object#copyというメソッドはありません。
+
 
 ## Objectクラス
 様々なクラスのスーパークラス
