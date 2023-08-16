@@ -288,3 +288,18 @@
 
 # p M::Parent.class_variable_get(:@@val) # => 150
 # p M.class_variable_get(:@@val) # => 100
+
+class C
+end
+
+module M
+  CONST = "Hello, world"
+
+  C.class_eval do
+    def awesome_method
+      CONST
+    end
+  end
+end
+
+p C.new.awesome_method
