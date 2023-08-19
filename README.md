@@ -7,12 +7,19 @@
 
 #  tree構造
 ```
+.
 ├── AWS
 │   └── beginner.md
 ├── README.md
 ├── Rails
 │   ├── API.md
-│   └── JSON.md
+│   ├── JSON.md
+│   └── login_app
+├── Typescript
+│   ├── increment.js
+│   ├── node_modules
+│   ├── package-lock.json
+│   └── package.json
 ├── algo_practice
 │   ├── Paiza
 │   ├── algo
@@ -22,7 +29,9 @@
     ├── Regexp
     ├── class
     ├── exception
+    ├── gold
     ├── hash_symbol
     ├── module
     └── silver
+
 ```
