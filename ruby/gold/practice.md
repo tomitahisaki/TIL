@@ -1387,6 +1387,66 @@ m.module_eval(&_proc)
 p m.const => "Constant in Module instance"
 ```
 
+### instance_eval の中身を調べてみた
+```
+class C
+  attr_accessor :a
+  def initialize
+    @a = 1
+  end
+end
+
+obj = C.new
+obj_1 = C.new
+
+p obj #=> #<C:0x00000001007a6560 @a=1>
+
+obj.instance_eval do
+  p self #=> #<C:0x00000001007a6560 @a=1>
+  @v = 1
+  def c1
+    "hello"
+  end
+  p self #=> #<C:0x00000001007a6560 @a=1, @v=1>
+end
+
+p obj.methods #=> [:c1, :a, :a=, :hash, :singleton_class, ...]
+p obj.singleton_methods #=> [:c1]
+p obj_1.methods #=> [:a, :a=, :hash, :singleton_class, ...]
+```
+
+### class_eval の中身を調べてみた
+```
+class C 
+  attr_accessor :a, :v
+
+  V = 1
+  def initialize
+    @a = 1
+  end
+end
+p C::V #=> 1
+obj = C.new
+obj_1 = C.new
+
+p obj #<C:0x0000000102a962c8 @a=1>
+p obj_1 #<C:0x0000000102a96250 @a=1>
+# p obj.hello # => NoMethodsError
+
+C.class_eval {
+  p self # => C
+  V = 2 
+  def hello
+    "hello"
+  end
+}
+p C::V #=> 1 となるが、ブロックではなく、コンテキスト(ヒアドキュメント)で囲むと 2 となる
+p obj #<C:0x0000000102a962c8 @a=1>
+p obj_1 #<C:0x0000000102a96250 @a=1>
+p obj.hello #=> "hello"
+p obj_1.hello #=> "hello"
+```
+
 ## arg
 キーワード引数のこと。省略できないので注意
 ```
