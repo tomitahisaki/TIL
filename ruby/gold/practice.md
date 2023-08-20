@@ -1598,3 +1598,66 @@ end
 p M::Parent.class_variable_get(:@@val) # => 150
 p M.class_variable_get(:@@val) # => 100
 ```
+
+## ヒアドキュメント
+silverでもやっているが、復習
+
+### <<識別子
+基本の形と捉えておく 
+
+中身をそのまま出力することができる。ただし、文末の識別子にインベントをつけられないので注意！！
+```
+def hello
+  puts <<EOS
+    hi,
+
+    R U OK?
+EOS
+end
+
+hello
+
+=>  hi,
+=>
+=>  R U OK?
+```
+
+### <<-識別子
+終端のEOSにインデントをつけたいとき(要するにdef~end内で、ネストさせたいとき)
+
+終端のインデントをつけてもエラーとならないのが、基本形との違い
+```
+def hello
+  puts <<-EOS
+    hi,
+
+    R U OK?
+  EOS   # インデントをつけることができる
+end
+
+hello
+
+=>  hi,
+=>
+=>  R U OK?
+```
+
+### <<~識別子
+出力する文字のインデントが必要無いときにつかう。
+
+```
+def hello
+  puts <<~EOS
+    hi,
+
+    R U OK?
+  EOS
+end
+
+hello
+
+# インデントがない状態で、出力する
+=>hi,
+=>
+=>R U OK?
+```

@@ -343,28 +343,3 @@
 # p obj_1 #<C:0x0000000102a96250 @a=1>
 # p obj.hello #=> "hello"
 # p obj_1.hello #=> "hello"
-
-module M1
-  def method_1
-    __method__
-  end
-end
-
-class C
-  include M1
-end
-
-p C.new.method_1
-
-module M2
-  def method_2
-    __method__
-  end
-end
-
-module M1
-  include M2
-end
-
-p C.new.method_2
-p C.ancestors
