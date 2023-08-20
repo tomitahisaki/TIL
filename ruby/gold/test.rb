@@ -289,17 +289,82 @@
 # p M::Parent.class_variable_get(:@@val) # => 150
 # p M.class_variable_get(:@@val) # => 100
 
-class C
-end
+# class C
+#   attr_accessor :a
+#   def initialize
+#     @a = 1
+#   end
+# end
 
-module M
-  CONST = "Hello, world"
+# obj = C.new
+# obj_1 = C.new
 
-  C.class_eval do
-    def awesome_method
-      CONST
-    end
+# p obj #=> #<C:0x00000001007a6560 @a=1>
+
+# obj.instance_eval do
+#   p self #=> #<C:0x00000001007a6560 @a=1>
+#   @v = 1
+#   def c1
+#     "hello"
+#   end
+#   p self #=> #<C:0x00000001007a6560 @a=1, @v=1>
+# end
+# p obj #=> #<C:0x00000001007a6560 @a=1, @v=1>
+# p obj_1 #=> #<C:0x0000000104885c48 @a=1>
+# p obj.methods #=> [:c1, :a, :a=, :hash, :singleton_class, ...]
+# p obj.singleton_methods #=> [:c1]
+# p obj_1.methods #=> [:a, :a=, :hash, :singleton_class, ...]
+
+# class C 
+#   attr_accessor :a, :v
+
+#   V = 1
+#   def initialize
+#     @a = 1
+#   end
+# end
+# p C::V #=> 1
+# obj = C.new
+# obj_1 = C.new
+
+# p obj #<C:0x0000000102a962c8 @a=1>
+# p obj_1 #<C:0x0000000102a96250 @a=1>
+# # p obj.hello # => NoMethodsError
+
+# C.class_eval {
+#   p self # => C
+#   V = 2
+#   def hello
+#     "hello"
+#   end
+# }
+# p C::V #=> 1
+# p obj #<C:0x0000000102a962c8 @a=1>
+# p obj_1 #<C:0x0000000102a96250 @a=1>
+# p obj.hello #=> "hello"
+# p obj_1.hello #=> "hello"
+
+module M1
+  def method_1
+    __method__
   end
 end
 
-p C.new.awesome_method
+class C
+  include M1
+end
+
+p C.new.method_1
+
+module M2
+  def method_2
+    __method__
+  end
+end
+
+module M1
+  include M2
+end
+
+p C.new.method_2
+p C.ancestors
