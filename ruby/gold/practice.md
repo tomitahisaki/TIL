@@ -1388,6 +1388,9 @@ p m.const => "Constant in Module instance"
 ```
 
 ### instance_eval の中身を調べてみた
+オブジェクトに対して、インスタンスメソッドと特異メソッドを追加できる
+
+`C.instance_eval`とした場合は、クラスに対して、インスタンスメソッドと特異メソッドを追加する
 ```
 class C
   attr_accessor :a
@@ -1416,6 +1419,7 @@ p obj_1.methods #=> [:a, :a=, :hash, :singleton_class, ...]
 ```
 
 ### class_eval の中身を調べてみた
+クラスへインスタンスメソッドを追加することはできるが、特異メソッドは作成できない
 ```
 class C 
   attr_accessor :a, :v
@@ -1440,11 +1444,15 @@ C.class_eval {
     "hello"
   end
 }
+p C.instance_methods #=> helloメソッドがある
+p C.singleton_methods #=> なし
 p C::V #=> 1 となるが、ブロックではなく、コンテキスト(ヒアドキュメント)で囲むと 2 となる
 p obj #<C:0x0000000102a962c8 @a=1>
 p obj_1 #<C:0x0000000102a96250 @a=1>
 p obj.hello #=> "hello"
 p obj_1.hello #=> "hello"
+p C.instance_methods
+p C.singleton_methods
 ```
 
 ## arg
