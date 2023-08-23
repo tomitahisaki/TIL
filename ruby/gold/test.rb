@@ -314,32 +314,37 @@
 # p obj.methods #=> [:c1, :a, :a=, :hash, :singleton_class, ...]
 # p obj.singleton_methods #=> [:c1]
 # p obj_1.methods #=> [:a, :a=, :hash, :singleton_class, ...]
+# p C.methods #=> [:c1, ....]
+# p C.singleton_methods #=> [:c1]
 
-# class C 
-#   attr_accessor :a, :v
+class C 
+  attr_accessor :a, :v
 
-#   V = 1
-#   def initialize
-#     @a = 1
-#   end
-# end
-# p C::V #=> 1
-# obj = C.new
-# obj_1 = C.new
+  V = 1
+  def initialize
+    @a = 1
+  end
+end
+p C::V #=> 1
+obj = C.new
+obj_1 = C.new
 
-# p obj #<C:0x0000000102a962c8 @a=1>
-# p obj_1 #<C:0x0000000102a96250 @a=1>
-# # p obj.hello # => NoMethodsError
+p obj #<C:0x0000000102a962c8 @a=1>
+p obj_1 #<C:0x0000000102a96250 @a=1>
+# p obj.hello # => NoMethodsError
 
-# C.class_eval {
-#   p self # => C
-#   V = 2
-#   def hello
-#     "hello"
-#   end
-# }
-# p C::V #=> 1
-# p obj #<C:0x0000000102a962c8 @a=1>
-# p obj_1 #<C:0x0000000102a96250 @a=1>
-# p obj.hello #=> "hello"
-# p obj_1.hello #=> "hello"
+C.class_eval {
+  p self # => C
+  V = 2
+  def hello
+    "hello"
+  end
+}
+p C.instance_methods
+p C.singleton_methods
+p C::V #=> 1
+p obj #<C:0x0000000102a962c8 @a=1>
+p obj_1 #<C:0x0000000102a96250 @a=1>
+p obj.hello #=> "hello"
+p obj_1.hello #=> "hello"
+
