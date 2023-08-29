@@ -349,5 +349,5 @@
 # p obj_1.hello #=> "hello"
 # 
 
-p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)
-p /B.bbidi-?+/.match("Bibbidi-Bobbidi-Boo")
+# p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)
+# p /B.bbidi-?+/.match("Bibbidi-Bobbidi-Boo")
