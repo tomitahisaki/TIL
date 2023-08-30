@@ -75,10 +75,24 @@ def m
   end
 end
 
-p m
+p m #=> 3
 ```
 
 ## splat演算子
+```
+def hoge(*args, &block)
+  p *args #=> 1,2,3,4
+  p args #=> [1,2,3,4]
+  block.call(args)
+end
+
+hoge(1,2,3,4) do |*args|
+  p args #=> [[1,2,3,4]]
+  p *args #=> [1,2,3,4]
+  p args.length > 0 ? "hello" : args
+end
+
+```
 
 ## 可変長引数
 ```
@@ -88,10 +102,10 @@ p args #=> [1,2,3,4]
 ```
 
 ```
-def hoge(*args, &block) # 受け取った引数をブロックに展開する。 引数argとして、出力は配列？
+def hoge(*args, &block) # 受け取った引数をブロックに展開する。 可変長引数*argとして、配列として受け取る
   block.call(*args) # 各要素を個別の引数として展開する 配列→それぞれ
 end
-hoge(1,2,3,4) do |*args| # ブロック内で引数を個別に受け取るための*args
+hoge(1,2,3,4) do |*args| # 引数を配列として受け取る
   p args # => [1,2,3,4]
   p *args # => 1,2,3,4
 end
@@ -99,7 +113,7 @@ end
 def hoge(*args, &block)
   block.call(args) #=> 可変長引数の*argsのargsをそのままブロックに展開する 配列→配列
 end
-hoge(1,2,3,4) do |*args| #=> 引数を配列として受け取っている。
+hoge(1,2,3,4) do |*args| #=> 引数を配列として受け取っている。元が配列の場合は２次元配列となる
   p args # => [[1,2,3,4]]
   p *args # => [1,2,3,4]
 end
@@ -231,29 +245,48 @@ obj = MyClass.new()
 obj.send(:my_private_method)
 ```
 
+### aliasでもprivateを呼べる
+```
+class Foo
+  private
+  def private_in_superclass
+    "private in superclass"
+  end
+end
+
+class Biz < Foo
+  alias superclass_method private_in_superclass
+  def private_in_superclass 
+    superclass_method
+  end
+end
+p Biz.new.private_in_superclass # => "private in superclass"
+```
+
 ## グローバル変数
-ガーベッジコレクション
 
 ```
 $o =self
 class MyClass
   $a = self
   def b
-    $b = self
+    $b = self #=> インスタンスメソッドなので、インスタンスが処理されるごとに$bの中身も変わることに注意！
   end
 end
 $c = MyClass.new
-p $a
-p $
-p $b = MyClass.new.b
-p $c.b
-p $a == $o # false MyClassとmainの比較
-p $b == $c # true オブジェクト比較はfalseだが、ガーベッジコレクションの関連上、一時的にtrue
+p $a # MyClass
+p $o # main
+p $b # nil メソッドが発動しない限り、nil
+p $c # MyClassのインスタンス
+p $c.b # $bにself($cのこと)が入るので、$cのインスタンスと等しくなる
+
+p $a == $o #=> false
+p $b == $c #=> true
 ```
 
 ## 定数
 定数の初期化について
-メソッド無いで
+メソッド内で定数を定義したり、破壊的な変更はできない。
 ```
 CONST = "abc"
 def method_a; p CONST; end
@@ -265,4 +298,77 @@ method_a
 method_b  # => 定義段階でエラー
 method_c  # => 定義段階でエラー
 method_d  # => 破壊的メソッドではない
+```
+
+## 文法
+
+配列の作成方法によっては、同じオブジェクトIDをもつ
+```
+ary = Array.new(3){"a"}
+ary_1 = Array.new(3,"a")
+ary[0].next!
+ary_1[0].next!
+p ary
+p ary_1
+```
+
+## クラス変数とクラスインスタンス変数の違い
+```
+class A
+  @@a = 1
+  @b = 2
+  p @@a #=> 1
+  p @b #=> 2
+  class << self
+    @@a = 10
+    @b = 20
+    p @@a #=> 10
+    p @b #=> 20
+  end
+end
+p A.class_variable_get(:@@a) #=> 10 クラス変数 共有されるので、再代入となる
+p A.instance_variable_get(:@b) #=> 2 インスタンス変数は共有されない
+p singleton_variable = class << A
+                          @b #=> 特異クラスで定義したインスタンス変数を表示する方法
+                      end
+```
+
+## undef
+```
+class Bar < Foo
+ def foo
+  super + "bar"
+ end
+ alias bar foo
+ undef foo
+end
+puts Bar.new.bar #=> foobar 
+aliasとundef順が逆だと、nomethoderrorになる
+```
+
+## ブロックを渡すには
+転送引数を使っている。使わない場合は、`$block`を明示すること
+```
+def sample_a(...)
+  if block_given?
+    puts 'Yes:a'
+  else
+    puts 'No:a'
+  end
+  sample_b(...)
+end
+
+def sample_b(&block)
+  if block_given?
+    puts 'Yes:b'
+    block.call
+  else
+    puts 'No:b'
+  end
+end
+
+sample_a { puts 'I am a block' }
+# Yes:a
+# Yes:b
+# I am a block
 ```

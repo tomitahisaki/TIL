@@ -308,15 +308,15 @@
 # p add(1, 2)
 
 # def hoge(*args, &block)
-  # p *args
-  # p args
-  # block.call(args)
+#   p *args
+#   p args
+#   block.call(args)
 # end
-# 
+
 # hoge(1,2,3,4) do |*args|
-  # p args
-  # p *args
-  # p args.length > 0 ? "hello" : args
+#   p args
+#   p *args
+#   p args.length > 0 ? "hello" : args
 # end
 
 # a = [1,2,3,4,5,6,7]
@@ -485,13 +485,182 @@
 # inc.class
 # p inc.call(7) # =>8
 
-CONST = "abc"
-def method_a; p CONST; end
-def method_b; p CONST = ""; end
-def method_c; p CONST += "def"; end
-def method_d; p CONST << "hij"; end
+# CONST = "abc"
+# def method_a; p CONST; end
+# def method_b; p CONST = ""; end
+# def method_c; p CONST += "def"; end
+# def method_d; p CONST << "hij"; end
 
-method_a
-method_b
-method_c
-method_d
+# method_b
+# method_a
+# method_c
+# method_d
+
+# module M
+  # def self.greet
+    # puts "Hello World!"
+  # end
+# end
+# 
+# class SomeClass
+  # include M
+# end
+# M.greet
+# SomeClass.greet
+
+# def hoge(*args)
+  # p args
+# end
+# hoge([1,2,3])
+
+# class Foo
+#   private
+#   def private_in_superclass
+#     "private in superclass"
+#   end
+# end
+
+# class Biz < Foo
+#   alias superclass_method private_in_superclass
+#   def private_in_superclass 
+#     superclass_method
+#   end
+# end
+# p Biz.new.private_in_superclass
+# ary = Array.new(3){"a"}
+# ary_1 = Array.new(3,"a")
+# ary[0].next!
+# ary_1[0].next!
+# p ary
+# p ary_1
+
+# class A
+  # $a = self
+  # def hoge
+    # $b = self
+  # end
+# end
+# a = A.new
+# p A == $a
+# p $b
+# a.hoge
+# p $b
+# p a.hoge
+# p $b == a.hoge
+
+# $o =self
+# class MyClass
+  # $a = self
+  # def b
+    # $b = self 
+  # end
+# end
+# $c = MyClass.new
+# p $a # MyClass
+# p $o # main
+# p $b # nil メソッドが発動しない限り、nil
+# p $c # MyClassのインスタンス
+# p $c.b # $bにself($cのこと)が入るので、$cのインスタンスと等しくなる
+# 
+# p $a == $o #=> false
+# p $b == $c #=> true
+# 
+# $o =self
+# class MyClass
+#   $a = self
+#   def b
+#     $b = self
+#   end
+# end
+# $c = MyClass.new
+# p b = MyClass.new.b
+# $c.b
+# p $b
+# p $b == $c
+
+# class A
+#   @@a = 1
+#   @b = 2
+#   p @@a #=> 1
+#   p @b #=> 2
+#   class << self
+#     @@a = 10
+#     @b = 20
+#     p @@a #=> 10
+#     p @b #=> 20
+#   end
+# end
+# p A.class_variable_get(:@@a) #=> 10 クラス変数 共有されるので、再代入となる
+# p A.instance_variable_get(:@b) #=> 2 インスタンス変数は共有されない
+# p singleton_variable = class << A
+#                           @b #=> 特異クラスで定義したインスタンス変数を表示する方法
+#                       end
+
+# module M1
+# end
+# module M2
+# end
+# class C1
+#   include M1
+#   include M2
+# end
+# class C2 < C1
+#   def foo
+#     p self.class.ancestors # => クラスインスタンスしかancestorsは処理されない
+#   end
+# end
+# c = C2.new
+# c.foo
+
+# def sample_a
+#   if block_given?
+#     puts 'Yes:a'
+#   else
+#     puts 'No:a'
+#   end
+#   sample_b
+# end
+
+# def sample_b
+#   if block_given?
+#     puts 'Yes:b'
+#     yield
+#   else
+#     puts 'No:b'
+#   end
+# end
+
+# sample_a { puts 'I am a block' }
+# # Yes:a ブロックはsample_aで渡されるが、
+# # No:b method_bには渡されない
+
+# def sample_a(...)
+#   if block_given?
+#     puts 'Yes:a'
+#   else
+#     puts 'No:a'
+#   end
+#   sample_b(...)
+# end
+
+# def sample_b($block)
+#   if block_given?
+#     puts 'Yes:b'
+#     block.call
+#   else
+#     puts 'No:b'
+#   end
+# end
+
+# sample_a { puts 'I am a block' }
+# # Yes:a
+# # Yes:b
+# # I am a block
+
+class C
+  %W(homu mami mado).each {|name|
+  define_method(name) {"name is #{name}"}
+  }
+end
+c = C.new
+p %W(homu mami mado).map{|name| p c.send(name)}
