@@ -138,6 +138,20 @@ p h.transform_values{ _1*10 }
 p h.transform_values{|v| v*10}
 ```
 
+値がない場合は、出力されていないことを確認
+```
+h = {a: "gold", b: "silver"}
+h.map {puts "key:#{_1}, value: #{_2}"} 
+#=> key:a, value: gold
+#=> key:b, value: silver
+h1 = [1,2,3,4]
+h1.map {puts "key:#{_1}, value: #{_2}"}
+#=> key:1, value:
+#=> key:2, value:
+#=> key:3, value:
+#=> key:4, value:
+```
+
 ## 転送引数
 引数を転送する記法
 
@@ -346,6 +360,25 @@ puts Bar.new.bar #=> foobar
 aliasとundef順が逆だと、nomethoderrorになる
 ```
 
+使うと呼び出したクラスとサブクラスでメソッドを呼び出せなくなる。
+```
+class C
+  def func; puts "Hello"; end
+end
+
+class Child < C
+  undef_method :func
+end
+
+class GrandChild < Child
+end
+
+C.new.func # => Hello
+# Child.new.func # => NoMethodError
+# GrandChild.new.func # => NoMethodError
+
+```
+
 ## ブロックを渡すには
 転送引数を使っている。使わない場合は、`$block`を明示すること
 ```
@@ -371,4 +404,94 @@ sample_a { puts 'I am a block' }
 # Yes:a
 # Yes:b
 # I am a block
+```
+
+## append_features
+いつ読み込まれているのかと、superを書かないとエラーになる
+```
+module M
+  def self.append_features(include_class_name)
+    p C.ancestors #=> [C, Object, Kernel, BasicObject]
+    super # このsuperを書かないとエラー発生
+  end
+  def func
+    p "Hello World"
+  end
+end
+
+class C
+  include M
+end
+p C.ancestors #=> [C, M, Object, Kernel, BasicObject]
+```
+
+## 自己代入
+```
+def count
+  @count ||= 0
+  puts "#{@count}"
+  @count += 1
+end
+
+count # 0
+count # 1
+count # 2
+count # 3
+```
+
+## singleton
+こんな形で出力するとわかりやすい 
+```
+require "singleton"
+
+class Foo
+  include Singleton
+end
+
+p x = Foo.instance #=> #<Foo:0x00000001025fe198>
+p y = Foo.instance #=> #<Foo:0x00000001025fe198>
+```
+
+## strptime iso8601を使ってみる
+```
+require "time"
+
+t = Time.strptime("00000024021993", "%S%M%H%d%m%Y")
+puts t #=> 1993-02-24 00:00:00 +0900
+puts t.iso8601 #=> 1993-02-24T00:00:00+09:00
+```
+
+## Date DateTime
+```
+require "date"
+
+date = Date.new(2000, 2, 24)
+datetime = DateTime.new(2000, 2, 24)
+
+puts(date << 12) #=> 1999-02-24
+puts(date >> 12) #=> 2001-02-24
+puts(datetime << 12) #=> 1999-02-24T00:00:00+00:00
+puts(datetime >> 12) #=> 2001-02-24T00:00:00+00:00
+```
+
+## パターンマッチ
+hashで行う
+```
+h = {a: 1, b: 2, c: 3}
+case h
+in {a: a, d: d} # dはないので、出力されない
+  p "a: #{a}, b: #{b}"
+in {a: a, b: b, c: c} # こちらが出力
+  p "a: #{a}, b: #{b}, c: #{c}"
+end
+```
+配列
+```
+h = [1, 2, 3]
+case h
+in [x, y]
+  p [:two, x, y]
+in  [x, y, z] # 要素数がマッチするので、出力される
+  p [:three, x, y, z]
+end
 ```

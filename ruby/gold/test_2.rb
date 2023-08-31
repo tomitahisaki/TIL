@@ -657,10 +657,112 @@
 # # Yes:b
 # # I am a block
 
-class C
-  %W(homu mami mado).each {|name|
-  define_method(name) {"name is #{name}"}
-  }
-end
-c = C.new
-p %W(homu mami mado).map{|name| p c.send(name)}
+# class C
+  # %W(homu mami mado).each {|name|
+  # define_method(name) {"name is #{name}"}
+  # }
+# end
+# c = C.new
+# p %W(homu mami mado).map{|name| p c.send(name)}
+
+# module M
+  # def self.append_features(include_class_name)
+    # p C.ancestors #=> [C, Object, Kernel, BasicObject]
+    # puts "append_features"
+    # super # このsuperを書かないとエラー発生
+  # end
+  # def func
+    # p "Hello World"
+  # end
+# end
+# 
+# class C
+  # include M
+# end
+# p C.ancestors #=> [C, M, Object, Kernel, BasicObject]
+
+# class C
+#   def func; puts "Hello"; end
+# end
+
+# class Child < C
+#   undef_method :func
+# end
+
+# class GrandChild < Child
+# end
+
+# C.new.func # => Hello
+# # Child.new.func # => NoMethodError
+# # GrandChild.new.func # => NoMethodError
+
+# def count
+  # @count ||= 0
+  # puts "#{@count}"
+  # @count += 1
+# end
+# 
+# count
+# count
+# count
+# count 
+
+# case文（どの条件にも一致しなければ何も起きずnilが返る）
+# case 'chicken'
+# when 'tomato', 'potato', 'carrot'
+  # '野菜です'
+# when 'orange', 'melon', 'banana'
+  # '果物です'
+# end
+# => nil
+# 
+# パターンマッチ（どの条件にも一致しなければ例外が発生する）
+# case 'chicken'
+# in 'tomato' | 'potato' | 'carrot'
+  # '野菜です'
+# in 'orange' | 'melon' | 'banana'
+  # '果物です'
+# end
+#=> NoMatchingPatternError (chicken)
+
+# h = {a: "gold", b: "silver"}
+# h.map {puts "key:#{_1}, value: #{_2}"} 
+# h1 = [1,2,3,4]
+# h1.map {puts "key:#{_1}, value: #{_2}"} 
+
+# require "singleton"
+# 
+# class Foo
+  # include Singleton
+# end
+# 
+# p x = Foo.instance
+# p y = Foo.instance
+
+# require "date"
+
+# date = Date.new(2000, 2, 24)
+# datetime = DateTime.new(2000, 2, 24)
+
+# puts(date << 12) #=> 1999-02-24
+# puts(date >> 12) #=> 2001-02-24
+# puts(datetime << 12) #=> 1999-02-24T00:00:00+00:00
+# puts(datetime >> 12) #=> 2001-02-24T00:00:00+00:00
+
+
+# h = {a: 1, b: 2, c: 3}
+# case h
+# in {a: a, d: d}
+#   p "a: #{a}, b: #{b}"
+# in {a: a, b: b, c: c}
+#   p "a: #{a}, b: #{b}, c: #{c}"
+# end
+
+# h = [1, 2, 3]
+# case h
+# in [x, y]
+  # p [:two, x, y]
+# in  [x, y, z]
+  # p [:three, x, y, z]
+# end
+
