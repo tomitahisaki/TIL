@@ -29,10 +29,23 @@ puts "End"
 #=> End
 ```
 
-### ensure
-begin ある場合は "begin"出力後に`ensure`を評価して出力。その後、1が出力される
+### 指定しない場合はRunTimeErrorとなる
+`rescue`に特定の例外クラスをいれないと、StandardErrorとそのサブクラスが捕捉される
 
-beginがない場合、`ensure`が先に評価されてから通常処理が返される。
+デフォルトは`RunTimeError`となる
+```
+begin
+  raise
+rescue => e
+  p e.class # RunTimeError
+  puts "OK"
+end
+```
+
+### ensure
+`ensure`が先に評価されてから通常処理が返される。
+
+ただし、下記のように`begin`に`puts "begin"`のような処理があると、そちらが優先される。
 ```
 def m
   begin
@@ -55,9 +68,8 @@ ensure
 
   "hi"
 end
-
 puts greeting
-# Ensure called
+# Ensure called!
 # hello
 ```
 
@@ -151,6 +163,18 @@ h1.map {puts "key:#{_1}, value: #{_2}"}
 #=> key:3, value:
 #=> key:4, value:
 ```
+
+多次元配列のときの`_1`は配列自体を見ている可能性がある
+
+`_1 * 10`としても配列に対して行われているので注意
+```
+p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _2.upcase } # ["FOO", "BAR", "BAZ"]
+p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _2 } # ["Foo", "bar", "baz"]
+p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _1 } # [[1, "Foo"], [2, "bar"], [3, "baz"]]
+p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { |n, v| n * 10 } # [10, 20, 30]
+p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _1 * 2 } # [10, 20, 30]
+```
+
 
 ## 転送引数
 引数を転送する記法
@@ -331,20 +355,43 @@ p ary_1
 class A
   @@a = 1
   @b = 2
-  p @@a #=> 1
-  p @b #=> 2
+  # p @@a #=> 1
+  # p @b #=> 2
   class << self
     @@a = 10
     @b = 20
-    p @@a #=> 10
-    p @b #=> 20
+    # p @@a #=> 10
+    # p @b #=> 20
   end
 end
-p A.class_variable_get(:@@a) #=> 10 クラス変数 共有されるので、再代入となる
-p A.instance_variable_get(:@b) #=> 2 インスタンス変数は共有されない
+puts A.singleton_class.instance_variable_get(:@b) # 20
+puts A.singleton_class.class_variable_get(:@@a) # 10
+puts A.instance_variable_get(:@b) # 2 クラスインスタンス変数は、共有されないので、#AクラスとAクラスのクラスインスタンス変数は異なる。
+puts A.class_variable_get(:@@a) # 10 こちらは再代入されているから 1は出力されない
+
 p singleton_variable = class << A
                           @b #=> 特異クラスで定義したインスタンス変数を表示する方法
                       end
+```
+
+こちらでもわかりやすい
+```
+class Speaker
+  @message = "Hello!"
+
+  class << self
+    @message = "Howdy!"
+
+    def speak
+      @message
+    end
+  end
+end
+
+puts Speaker.speak # Hello!
+# puts Speaker.singleton_class.speak # 特異クラスでのnometohderror
+puts Speaker.instance_variable_get(:@message) # Hello!
+puts Speaker.singleton_class.instance_variable_get(:@message) # Howdy
 ```
 
 ## undef
@@ -495,3 +542,27 @@ in  [x, y, z] # 要素数がマッチするので、出力される
   p [:three, x, y, z]
 end
 ```
+
+## キーワード引数
+仮引数でデフォを設定していれば良いが、指定せずに引数を渡さないとエラーになる
+```
+def fx(a:, b: "apple")
+  p a
+  p b
+end
+
+fx(a: "banana")
+```
+
+## 半無限区間
+`..`をつかうことでつけられる
+```
+a = [1,2,3,4,5,6]
+p a[3..5]
+p a[3,3]
+p a[3..-1]
+p a[-3..-1]
+p a[3..]
+p a[..2]
+```
+

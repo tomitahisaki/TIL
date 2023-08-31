@@ -766,3 +766,115 @@
   # p [:three, x, y, z]
 # end
 
+# module M
+#    extend self #=> 自身のメソッドを特異メソッドとする
+#   def greet
+#     puts "Hello World!"
+#   end
+# end
+
+# class SomeClass
+#   extend M
+# end
+
+# M.greet
+# SomeClass.greet
+
+# p Class.superclass # Module
+# p Module.superclass # Object
+# p Object.superclass # BasicObject
+# p BasicObject.superclass # nil
+
+# class Speaker
+  # @message = "Hello!"
+# 
+  # class << self
+    # @message = "Howdy!"
+# 
+    # def speak
+      # @message
+    # end
+  # end
+# end
+# 
+# puts Speaker.speak # Hello!
+# puts Speaker.singleton_class.speak # 特異クラスでのnometohderror
+# puts Speaker.instance_variable_get(:@message) # Hello!
+# puts Speaker.singleton_class.instance_variable_get(:@message) # Howdy
+
+# class A
+#   @@a = 1
+#   @b = 2
+#   # p @@a #=> 1
+#   # p @b #=> 2
+#   class << self
+#     @@a = 10
+#     @b = 20
+#     # p @@a #=> 10
+#     # p @b #=> 20
+#   end
+# end
+# puts A.singleton_class.instance_variable_get(:@b) # 20
+# puts A.singleton_class.class_variable_get(:@@a) # 10
+# puts A.instance_variable_get(:@b) # 2
+# puts A.class_variable_get(:@@a) # 10 こちらは再代入されているから 1は出力されない
+
+# p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _2.upcase } # ["FOO", "BAR", "BAZ"]
+# p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _2 } # ["Foo", "bar", "baz"]
+# p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _1 } # [[1, "Foo"], [2, "bar"], [3, "baz"]]
+# p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { |n, v| n * 10 } # [10, 20, 30]
+# p [[1, "Foo"], [2, "bar"], [3, "baz"]].map { _1 * 2 } # [10, 20, 30]
+
+# a = [1,2,3,4,5,6]
+# p a[3..5]
+# p a[3,3]
+# p a[3..-1]
+# p a[-3..-1]
+# p a[3..]
+# p a[..2]
+
+# obj = Object.new
+# 
+# def obj.hello
+  # puts "Hi!"
+# end
+# p obj.object_id
+# copy = obj.clone
+# p copy.object_id
+# copy.hello
+
+# class C
+#   @val = 3
+#   attr_accessor :val
+#   class << self
+#     @val = 10
+#   end
+#   def initialize
+#     @val = 1
+#     @val *= 2 if @val
+#   end
+# end
+
+# c = C.new
+# c.val += 10
+
+# p c.val
+# p C.instance_variable_get(:@val)
+# p C.singleton_class.instance_variable_get(:@val)
+
+class Human
+  attr_reader :name
+
+  alias_method :original_name, :name
+
+  def name
+    "Mr. " + original_name
+  end
+
+  def initialize(name)
+    @name = name
+  end
+end
+
+human = Human.new("Andrew")
+puts human.name
