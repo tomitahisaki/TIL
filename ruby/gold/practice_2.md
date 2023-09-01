@@ -301,6 +301,45 @@ end
 p Biz.new.private_in_superclass # => "private in superclass"
 ```
 
+### サブクラスでprotectedとprivateを使う
+```
+class Foo
+  private
+  def private_method1
+    puts "private_method1"
+  end
+
+  def private_method2
+    puts "private_method2"
+  end
+
+  protected
+  def protected_method1
+    puts "protected_method1"
+  end
+
+  def protected_method2
+    puts "protected_method2"
+  end
+end
+
+class Baz < Foo
+  public :private_method2, :protected_method2
+  def public_method_from_private
+    private_method1
+  end
+
+  def public_method_from_protected
+    protected_method1
+  end
+end
+
+Baz.new.public_method_from_private
+Baz.new.private_method2
+Baz.new.public_method_from_protected
+Baz.new.protected_method2
+```
+
 ## グローバル変数
 
 ```
@@ -336,6 +375,37 @@ method_a
 method_b  # => 定義段階でエラー
 method_c  # => 定義段階でエラー
 method_d  # => 破壊的メソッドではない
+```
+
+### 呼び出し方
+
+```
+A = 10
+module M 
+  A = 1
+  class B
+    A = 2
+  end
+  class C
+    def const
+      A
+    end
+
+    def const_b
+      B::A
+    end
+    
+    def const_top
+      ::A
+    end
+  end
+end
+
+p M::A
+p M::B::A
+p M::C.new.const
+p M::C.new.const_b
+p M::C.new.const_top
 ```
 
 ## 文法

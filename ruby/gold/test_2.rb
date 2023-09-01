@@ -862,19 +862,112 @@
 # p C.instance_variable_get(:@val)
 # p C.singleton_class.instance_variable_get(:@val)
 
-class Human
-  attr_reader :name
+# class Human
+  # attr_reader :name
+# 
+  # alias_method :original_name, :name
+# 
+  # def name
+    # "Mr. " + original_name
+  # end
+# 
+  # def initialize(name)
+    # @name = name
+  # end
+# end
+# 
+# human = Human.new("Andrew")
+# puts human.name
 
-  alias_method :original_name, :name
+# class Foo; end
+# class Bar; end
+# class Baz < Foo
+# end
+# 
+# class Baz < Bar # superclass mismatch
+# end
 
-  def name
-    "Mr. " + original_name
-  end
+# class Foo; end
+# class Baz < Foo
+#   # include Moo
 
-  def initialize(name)
-    @name = name
-  end
-end
+#   def method_a
+#     puts "method_a in Baz"
+#   end
+# end
 
-human = Human.new("Andrew")
-puts human.name
+# module Moo
+#   refine Baz do
+#     def method_a
+#       puts "method_a in Moo"
+#     end
+#   end
+# end
+# Baz.new.method_a
+
+# using Moo
+
+# Baz.new.method_a
+# 
+# class Foo
+  # private
+  # def private_method1
+    # puts "private_method1"
+  # end
+# 
+  # def private_method2
+    # puts "private_method2"
+  # end
+# 
+  # protected
+  # def protected_method1
+    # puts "protected_method1"
+  # end
+# 
+  # def protected_method2
+    # puts "protected_method2"
+  # end
+# end
+# 
+# class Baz < Foo
+  # public :private_method2, :protected_method2
+  # def public_method_from_private
+    # private_method1
+  # end
+# 
+  # def public_method_from_protected
+    # protected_method1
+  # end
+# end
+# 
+# Baz.new.public_method_from_private
+# Baz.new.private_method2
+# Baz.new.public_method_from_protected
+# Baz.new.protected_method2
+
+# A = 10
+# module M 
+#   A = 1
+#   class B
+#     A = 2
+#   end
+#   class C
+#     def const
+#       A
+#     end
+
+#     def const_b
+#       B::A
+#     end
+    
+#     def const_top
+#       ::A
+#     end
+#   end
+# end
+
+# p M::A
+# p M::B::A
+# p M::C.new.const
+# p M::C.new.const_b
+# p M::C.new.const_top
