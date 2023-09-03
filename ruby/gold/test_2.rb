@@ -104,6 +104,7 @@
 # end
 
 # # 以下のように明示的にネストしていれば規則通り Object の定数
+
 # # (ネストの外側)が先に探索される
 # class Object
 #   class Bar < Foo
@@ -204,6 +205,7 @@
 #   end
 # end
 # nesting で確かめてみるとネスト関係がわかるので定数探索がわかりやすくなる
+
 
 # def hoge(*args, &block)
 #   block.call(*args) 
@@ -971,3 +973,100 @@
 # p M::C.new.const
 # p M::C.new.const_b
 # p M::C.new.const_top
+
+# class Foo
+#   A = 1
+# end
+
+# module Bar
+#   B = 2 
+# end
+
+# class Baz < Foo
+#   include Bar
+#   A = 10
+#   B = 20
+#   def const
+#     p A
+#     p B
+#   end
+# end
+# Baz.new.const
+
+# class Foo; end
+# module M;end
+# class Fooext < Foo
+  # include M
+# end
+# p Foo.object_id
+# p Fooext.object_id
+# p M.object_id
+
+# a = "hoge"
+# b = a.dup
+# p a.object_id
+# p b.object_id
+# puts "------------------------------"
+# c = "foo"
+# d = c.clone
+# p c.object_id
+# p d.object_id
+
+# ary = [1,2,3].map{|n| n.freeze}.freeze
+# p ary_dup = ary.dup.frozen? # false
+# p ary_clone = ary.clone.frozen? # true
+
+# obj = "string"
+# def obj.hoge
+#   puts "hello world"
+# end
+# obj.freeze
+# obj_dup = obj.dup
+# p obj_dup.frozen? # false
+# # p obj_dup.hoge ## nomethoderror 
+
+# obj_clone = obj.clone 
+# p obj_clone.frozen? # true
+# p obj_clone.hoge # hello world
+
+# class C
+  # protected
+    # def initialize
+    # end
+  # end
+  # 
+  # p C.new.methods.include? :initialize
+
+# /(http:\/\/www(\.)(.*)\/)/ =~ "http://www.abc.com/"
+# p $0
+# p $1
+# p $2
+# p $3
+
+# class Stack
+#   def initialize
+#     @contents = []
+#   end
+
+#   [:push, :pop].each do |name|
+#     instance_eval(<<-EOF)
+#       def #{name}(*args)
+#         @contents.send(:#{name}, *args)
+#       end
+#     EOF
+#   end
+# end
+# p Stack.instance_methods #  class_evalを使用すると、インスタンスメソッドに追加されるので、こちらに表示される
+# p Stack.methods # instance_evalをクラス内で使用すると、特異メソッド定義となるので、こちらに追加される
+
+# def bar(n, a)
+#   puts a + n
+# end
+
+# def foo(n, ...)
+#   bar(n, ...)
+# end
+
+# foo(1,2)
+
+p h = {a: "a", b: "b"}.map{|k, v|  "#{k}: #{v.upcase}"}

@@ -205,6 +205,19 @@ end
 foo(["Ruby Silver!", "Ruby Gold!"]) 
 ```
 
+引数をいくつか指定し、残りを転送引数に渡しても良い
+```
+def bar(n, a)
+  puts a + n
+end
+
+def foo(n, ...)
+  bar(n, ...)
+end
+
+foo(1,2)
+```
+
 ## protected private
 レシーバありでも、内部で異なるインスタンスでも呼び出せるのが`protected`の特徴
 ```
@@ -636,3 +649,55 @@ p a[3..]
 p a[..2]
 ```
 
+## dup clone違い
+お互いにシャローコピーなので、自身の複製は可能。参照先のコピーはしていない
+
+なので、`object_id`は異なる
+```
+a = "hoge"
+b = a.dup
+p a.object_id
+p b.object_id
+puts "------------------------------"
+c = "foo"
+d = c.clone
+p c.object_id
+p d.object_id
+```
+特徴としては、`clone`のほうが複製項目が多い。汚染状態(taint),インスタンス変数,ファイナライザはどちらも複製するが、
+
+加えて凍結状態(freeze),特異メソッドもコピーできる
+
+```
+obj = "string"
+def obj.hoge
+  puts "hello world"
+end
+obj.freeze
+obj_dup = obj.dup
+p obj_dup.frozen? # false
+# p obj_dup.hoge ## nomethoderror 
+
+obj_clone = obj.clone 
+p obj_clone.frozen? # true
+p obj_clone.hoge # hello world
+```
+
+## class_evalとinstance_evalをクラス内で定義すると
+```
+class Stack
+  def initialize
+    @contents = []
+  end
+
+  [:push, :pop].each do |name|
+    instance_eval(<<-EOF)
+      def #{name}(*args)
+        @contents.send(:#{name}, *args)
+      end
+    EOF
+  end
+end
+p Stack.instance_methods #  class_evalを使用すると、インスタンスメソッドに追加されるので、こちらに表示される
+p Stack.methods # instance_evalをクラス内で使用すると、特異メソッド定義となるので、こちらに追加される
+```
