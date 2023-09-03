@@ -1069,4 +1069,25 @@
 
 # foo(1,2)
 
-p h = {a: "a", b: "b"}.map{|k, v|  "#{k}: #{v.upcase}"}
+# letters = catch(:done) do
+#   ("a".."z").each do |a|
+#     ("a".."z").each do |b|
+#       ("a".."z").each do |c|
+#         if a < b && b < c
+#           throw(:done, [a,b,c])
+#         end
+#       end
+#     end
+#   end
+# end
+
+# puts letters.join
+
+
+h = {a: 1, b: 2, c: 3}
+case h
+in {}
+  p [:two, a, b]
+in  {a: a, b: b, c: c}
+  p [:three, a,b,c]
+end
