@@ -150,12 +150,21 @@ p h.transform_values{ _1*10 }
 p h.transform_values{|v| v*10}
 ```
 
+配列、ハッシュでも使えた
+```
+ary = [["a", "gold"], ["b", "silver"]]
+puts ary.map{ "#{_1}: #{_2}"}
+# => a: gold
+# => b: silver
+
+hash = {a: "gold", b: "silver"}
+puts hash.map{ "#{_1}: #{_2}"}
+# => a: gold
+# => b: silver
+```
+
 値がない場合は、出力されていないことを確認
 ```
-h = {a: "gold", b: "silver"}
-h.map {puts "key:#{_1}, value: #{_2}"} 
-#=> key:a, value: gold
-#=> key:b, value: silver
 h1 = [1,2,3,4]
 h1.map {puts "key:#{_1}, value: #{_2}"}
 #=> key:1, value:
@@ -543,7 +552,9 @@ module M
   def self.append_features(include_class_name)
     p C.ancestors #=> [C, Object, Kernel, BasicObject]
     super # このsuperを書かないとエラー発生
+    p C.ancestors #=> [C, M, Object, Kernel, BasicObject]
   end
+  
   def func
     p "Hello World"
   end
@@ -700,4 +711,50 @@ class Stack
 end
 p Stack.instance_methods #  class_evalを使用すると、インスタンスメソッドに追加されるので、こちらに表示される
 p Stack.methods # instance_evalをクラス内で使用すると、特異メソッド定義となるので、こちらに追加される
+```
+
+## catch throw
+基本的に、`throw :exit [x, y]`としたいが、下記のような脱出構文でもエラーは発生しなかった。
+
+```
+# a, b = catch :exit do
+  # for x in 1..10
+    # for y in 1..10
+      # return [x, y] if x + y == 10
+    # end
+  # end
+# end
+
+# a, b = catch :exit do
+  # for x in 1..10
+    # for y in 1..10
+      # break [x, y] if x + y == 10
+    # end
+  # end
+# end
+
+# a, b = catch :exit do
+  # for x in 1..10
+    # for y in 1..10
+      # next [x, y] if x + y == 10
+    # end
+  # end
+# end
+```
+
+## Proc 渡し方について
+```
+def foo(n)
+  n ** n
+end
+
+foo = Proc.new { |n|
+  n * 3
+}
+
+puts foo(2) * 2 #=> 8
+puts foo[2] * 2 #=> 12
+puts foo [2] * 2 #=> 12
+puts foo (2) * 2 #=> 256
+puts foo 2 * 2 #=> 256
 ```

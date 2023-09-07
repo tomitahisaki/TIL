@@ -1083,11 +1083,95 @@
 
 # puts letters.join
 
+# h = {a: 1, b: 2, c: 3}
+# case h
+# in {}
+#   p [:two, a, b]
+# in  {a: a, b: b, c: c}
+#   p [:three, a,b,c]
+# end
 
-h = {a: 1, b: 2, c: 3}
-case h
-in {}
-  p [:two, a, b]
-in  {a: a, b: b, c: c}
-  p [:three, a,b,c]
+# def m
+  # begin
+    # 1
+  # rescue
+    # 2
+  # else
+    # 3
+  # ensure
+    # 4
+  # end
+# end
+# p m
+
+# class User
+  # def hello
+    # puts "hello I'm #{self.name}"
+  # end
+# 
+  # private
+  # def name
+    # "alice"
+  # end
+# end
+# 
+# user = User.new
+# user.hello 
+
+# module M; end
+# class X
+  # prepend M
+  # p self.ancestors
+# end
+
+# ary = [["a", "gold"], ["b", "silver"]]
+# puts ary.map{ "#{_1}: #{_2}"}
+# # a: gold
+# # b: silver
+
+# hash = {a: "gold", b: "silver"}
+# puts hash.map{ "#{_1}: #{_2}"}
+# # a: gold
+# # b: silver
+
+# a, b = catch :exit do
+  # for x in 1..10
+    # for y in 1..10
+      # return [x, y] if x + y == 10
+    # end
+  # end
+# end
+
+# a, b = catch :exit do
+  # for x in 1..10
+    # for y in 1..10
+      # break [x, y] if x + y == 10
+    # end
+  # end
+# end
+
+# a, b = catch :exit do
+  # for x in 1..10
+    # for y in 1..10
+      # next [x, y] if x + y == 10
+    # end
+  # end
+# end
+
+# class Foo
+  # def self.const_missing(name)
+    # "定数 #{name} はありません"
+  # end
+# end
+# 
+# p Foo::C
+
+def foo(n)
+  n ** n
 end
+
+foo = Proc.new { |n|
+  n * 3
+}
+
+puts foo 2 * 2
