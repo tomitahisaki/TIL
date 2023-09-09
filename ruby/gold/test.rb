@@ -347,7 +347,5 @@
 # p obj_1 #<C:0x0000000102a96250 @a=1>
 # p obj.hello #=> "hello"
 # p obj_1.hello #=> "hello"
-# 
 
-# p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)
-# p /B.bbidi-?+/.match("Bibbidi-Bobbidi-Boo")
+

@@ -1166,6 +1166,29 @@
 # 
 # p Foo::C
 
+# def foo(n)
+  # n ** n
+# end
+# 
+# foo = Proc.new { |n|
+  # n * 3
+# }
+# 
+# puts foo 2 * 2
+
+# mod = Module.new
+# 
+# mod.module_eval do
+  # EVAL_CONST = 100
+# end
+# 
+# puts Object.const_defined? :EVAL_CONST # trueと表示される
+# puts mod.const_defined? :EVAL_CONST # trueと表示される
+
+#p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)
+#result = /B.bbidi-B.bbidi-/.match("Bibbidi-Bobbidi-Boo")
+# p result
+
 def foo(n)
   n ** n
 end
@@ -1174,4 +1197,4 @@ foo = Proc.new { |n|
   n * 3
 }
 
-puts foo 2 * 2
+puts foo(2) * 2

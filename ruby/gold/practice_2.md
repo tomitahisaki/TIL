@@ -3,6 +3,8 @@
 
 ## 例外処理
 Exceptionを継承したエラーは捕捉されない
+
+明記すれば、補足される
 ```
 class MyError2 < Exception; end
 
@@ -743,6 +745,12 @@ p Stack.methods # instance_evalをクラス内で使用すると、特異メソ�
 ```
 
 ## Proc 渡し方について
+Procは、callもしくは[]で呼び出される
+
+`foo[2]`の場合は、Procが先に呼び出される
+
+`foo(2)`の場合は、メソッドが選択される
+
 ```
 def foo(n)
   n ** n
@@ -757,4 +765,12 @@ puts foo[2] * 2 #=> 12
 puts foo [2] * 2 #=> 12
 puts foo (2) * 2 #=> 256
 puts foo 2 * 2 #=> 256
+```
+
+## 正規表現
+```
+p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)  #=> #<MatchData "Bibbidi-">
+p /B.bbidi-?+/.match("Bibbidi-Bobbidi-Boo")  #=> #<MatchData "Bibbidi-">
+result = /B.bbidi-B.bbidi-/.match("Bibbidi-Bobbidi-Boo")
+p result #=> #<MatchData "Bibbidi-Bobbidi-">
 ```
