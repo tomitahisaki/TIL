@@ -1451,8 +1451,6 @@ p obj #<C:0x0000000102a962c8 @a=1>
 p obj_1 #<C:0x0000000102a96250 @a=1>
 p obj.hello #=> "hello"
 p obj_1.hello #=> "hello"
-p C.instance_methods
-p C.singleton_methods
 ```
 
 ## arg

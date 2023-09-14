@@ -325,6 +325,30 @@ end
 p Biz.new.private_in_superclass # => "private in superclass"
 ```
 
+### privateのクラスメソッドとインスタンスメソッドを呼んでみた
+```
+class A
+  def self.foo
+    self.bar
+  end
+
+  def fiz
+    bar
+  end
+
+  private
+  def bar
+    "instance"
+  end
+
+  def self.bar
+    "class1"
+  end
+end
+puts A.foo # => "instance"
+puts A.new.fiz "class1"
+```
+
 ### サブクラスでprotectedとprivateを使う
 ```
 class Foo
@@ -465,7 +489,7 @@ puts A.class_variable_get(:@@a) # 10 こちらは再代入されているから 
 
 p singleton_variable = class << A
                           @b #=> 特異クラスで定義したインスタンス変数を表示する方法
-                      end
+                       end
 ```
 
 こちらでもわかりやすい
@@ -486,6 +510,33 @@ puts Speaker.speak # Hello!
 # puts Speaker.singleton_class.speak # 特異クラスでのnometohderror
 puts Speaker.instance_variable_get(:@message) # Hello!
 puts Speaker.singleton_class.instance_variable_get(:@message) # Howdy
+```
+
+### クラス変数はサブクラスまで共有している結果
+このような出力で確認するとわかる
+```
+# class A
+  # puts "a"
+  # @@x = 0
+  # class << self
+    # puts "b"
+    # @@x = 1
+    # def x 
+      # puts "c"
+      # @@x
+    # end
+  # end
+  # def x 
+    # puts "d"
+    # @@x = 2
+  # end
+# end
+# 
+# class B < A
+  # puts "e"
+  # @@x = 3
+# end
+# p A.x   #=> a b e c 3
 ```
 
 ## undef
@@ -773,4 +824,6 @@ p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)  #=> #<MatchData "Bibbidi-">
 p /B.bbidi-?+/.match("Bibbidi-Bobbidi-Boo")  #=> #<MatchData "Bibbidi-">
 result = /B.bbidi-B.bbidi-/.match("Bibbidi-Bobbidi-Boo")
 p result #=> #<MatchData "Bibbidi-Bobbidi-">
+
+p /(B.bbidi-)+/.match("Bibbidi-Bobbidi-Boo") #=> #<MatchData "Bibbidi-Bobbidi-" 1:"Bobbidi-">
 ```

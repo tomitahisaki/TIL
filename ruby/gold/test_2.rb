@@ -371,10 +371,11 @@
 
 
 # f = Proc.new{|str| puts str}
-# p f.arity
-# f.call("NG")
+# p f.arity  # 1
+# f.call("NG") # NG
 # f = Proc.new{|i| puts i}
-# f.call(1)
+# f.call(1) # 1
+
 # def m
 #   begin
 #    puts "begin"
@@ -440,22 +441,24 @@
 # end
 
 # class MyClass
-#   include MyModule
+  # include MyModule
 # end
+
 # $o =self
 # class MyClass
-#   $a = self
-#   def b
-#     $b = self
-#   end
+  # $a = self
+  # def b
+    # $b = self
+  # end
 # end
 # $c = MyClass.new
-# # p $a
-# # p $o
-# p $b = MyClass.new.b
+# p $a #=> MyClass
+# p $o #=> main (Objectクラス)
 # p $c.b
-# # p $a == $o
-# p $b == $c
+# p $a == $o # false
+# p $b == $c #=> true
+
+
 # class C
   # def public_method
     # self.private_method
@@ -754,10 +757,10 @@
 
 # h = {a: 1, b: 2, c: 3}
 # case h
-# in {a: a, d: d}
-#   p "a: #{a}, b: #{b}"
+# in {a: a, b: b}  # こちらが優先されて出力されるので注意
+  # p "a: #{a}, b: #{b}"
 # in {a: a, b: b, c: c}
-#   p "a: #{a}, b: #{b}, c: #{c}"
+  # p "a: #{a}, b: #{b}, c: #{c}"
 # end
 
 # h = [1, 2, 3]
@@ -860,9 +863,9 @@
 # c = C.new
 # c.val += 10
 
-# p c.val
-# p C.instance_variable_get(:@val)
-# p C.singleton_class.instance_variable_get(:@val)
+# p c.val #=> 12
+# p C.instance_variable_get(:@val) #=> 3
+# p C.singleton_class.instance_variable_get(:@val) #=> 10
 
 # class Human
   # attr_reader :name
@@ -1186,15 +1189,195 @@
 # puts mod.const_defined? :EVAL_CONST # trueと表示される
 
 #p "Bibbidi-Bobbidi-Boo".match(/B.bbidi-?+/)
-#result = /B.bbidi-B.bbidi-/.match("Bibbidi-Bobbidi-Boo")
-# p result
+# p /B.bbidi-B.bbidi-/.match("Bibbidi-Bobbidi-Boo")
+# p /(B.bbidi-)+/.match("Bibbidi-Bobbidi-Boo")
 
-def foo(n)
-  n ** n
-end
 
-foo = Proc.new { |n|
-  n * 3
-}
+# def lambda_test
+  # lambda = -> {return "呼び出し元へ復帰"}
+  # lambda.call
+  # 2
+# end 
+# p lambda_test
 
-puts foo(2) * 2
+# def proc_test
+  # proc = Proc.new{return "脱出します"}
+  # proc.call
+  # 2
+# end
+# p proc_test
+
+# x = "".freeze
+# y = ["".freeze,].freeze
+# p x.frozen?
+# p x = "foo"
+# p x += "123"
+# p y.frozen?
+# p y[1] << "123"
+
+# module P
+  # def name
+    # puts "prepend P"
+    # super
+  # end
+# end
+# 
+# class C
+  # def name
+    # puts "class C"
+  # end
+  # prepend P
+# end
+# 
+# c = C.new
+#  c.name 
+
+# class A
+#   def self.foo
+#     self.bar
+#   end
+
+#   def fiz
+#     bar
+#   end
+
+#   private
+#   def bar
+#     "instance"
+#   end
+
+#   def self.bar
+#     "class1"
+#   end
+# end
+# puts A.foo # => "instance"
+# puts A.new.fiz "class1"
+
+# class A
+  # puts "a"
+  # @@x = 0
+  # class << self
+    # puts "b"
+    # @@x = 1
+    # def x 
+      # puts "c "
+      # @@x
+    # end
+  # end
+  # def x
+    # puts "d"
+    # @@x = 2
+  # end
+# end
+# 
+# class B < A
+  # puts "e"
+  # @@x = 3
+# end
+# p A.x   #=> a b e c 3
+
+# ary = [1,2,3].freeze
+# ary_1 = [4,5,6].freeze
+# ary += [4,5]
+# ary_1 << [7,8] #=> FrozenError
+# p ary
+# 
+
+# def foo(arg1:100, arg2:200)
+  # puts arg1
+  # puts arg2
+# end
+# 
+# option = {arg2: 900}
+# 
+# foo arg1:500, arg2:1000
+
+# val = 100
+
+# def method(val)
+#   yield(15 + val)
+# end
+
+# _proc = Proc.new{|arg| 
+#   puts val # 100 
+#   puts arg # 115 
+# }
+
+# p method(val, &_proc)
+
+# p (1..100).each.lazy.chunk(&:even?).take(5).force
+
+# m = Module.new
+
+# CONST = "Constant in Toplevel"
+
+# _proc = Proc.new do
+#   CONST = "Constant in Proc"
+# end
+
+# m.instance_eval(<<-EOS)
+#   CONST = "Constant in Module instance"
+
+#   def const
+#     CONST
+#   end
+# EOS
+
+# p m.module_eval(&_proc) # Constant in Proc
+
+# p m.const
+
+# open('textfile.txt', 'r+') do |f|
+#   data = f.read.upcase
+#   f.rewind
+#   f.puts data
+# end
+
+# module K
+#   class P
+#     CONST = "Good, night"
+#   end
+# end
+
+# module K::P::M
+#   class C
+#     CONST = "Good, evening"
+#   end
+# end
+
+# module M
+#   class C
+#     CONST = "Hello, world"
+#   end
+# end
+
+# class K::P
+  # class M::C
+  #   p CONST
+  # end
+# end
+
+# module M
+#   CONST = "Hello, world"
+# end
+
+# module M
+#   def self.say
+#     CONST
+#   end
+# end
+
+# p M::say
+
+# module M
+#   CONST = "Hello, world"
+# end
+
+# M.class_eval(<<-CODE)
+#   def self.say
+#     CONST
+#   end
+# CODE
+
+# p M::say
+
