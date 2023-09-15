@@ -1381,3 +1381,10 @@
 
 # p M::say
 
+# CONST_LIST_A = ['001', '002', '003']
+# p CONST_LIST_A.object_id
+# p CONST_LIST_A.map{|id| id << 'hoge'}.object_id
+
+# v1 = 1 / 2 == 0
+# v2 = !!v1 or raise RuntimeError # || だとエラー
+# puts v2 and false # && とすると false
