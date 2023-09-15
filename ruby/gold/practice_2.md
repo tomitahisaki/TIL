@@ -47,9 +47,9 @@ end
 ### ensureの処理
 `ensure`が先に評価されてから通常処理が返される。
 
-ただし、下記のように`begin`に`puts "begin"`のような処理があると、そちらが優先される。通常処理と認識している？
+ただし、下記のように`begin`に`puts "begin"`のような処理があると、そちらが優先される。通常処理として出力 `ensure`の`puts "ensure"`も同じことが言える
 
-その後 `ensure`部分が出力され、再度`begin`部分が出力
+その後 `ensure`部分が出力されず、再度`begin`の`1`が出力
 ```
 def m
   begin
@@ -148,10 +148,10 @@ end
 下記は全て同じvalueが出力される
 ```
 h = {a:1, b:2, c:3}
-p h.map{_2*10}
-p h.map{|k,v| v*10}
-p h.transform_values{ _1*10 }
-p h.transform_values{|v| v*10}
+p h.map{_2*10} # => [10, 20, 30]
+p h.map{|k,v| v*10} # => [10, 20, 30]
+p h.transform_values{ _1*10 } # => {:a=>10, :b=>20, :c=>30}
+p h.transform_values{|v| v*10} # => {:a=>10, :b=>20, :c=>30}
 ```
 
 配列、ハッシュでも使えた
@@ -383,7 +383,7 @@ class Baz < Foo
     protected_method1
   end
 end
-
+## superclassで定義したprivate protectedのどちらのメソッドも呼び出し可能
 Baz.new.public_method_from_private
 Baz.new.private_method2
 Baz.new.public_method_from_protected
@@ -705,14 +705,17 @@ fx(a: "banana")
 
 ## 半無限区間
 `..`をつかうことでつけられる
+
+下記の下２行は以下と未満の意味なので注意！
 ```
 a = [1,2,3,4,5,6]
-p a[3..5]
-p a[3,3]
-p a[3..-1]
-p a[-3..-1]
-p a[3..]
-p a[..2]
+p a[3..5] #=>[4,5,6]
+p a[3,3] #=>[4,5,6]
+p a[3..-1] #=>[4,5,6]
+p a[-3..-1] #=>[4,5,6]
+p a[3..] #=>[4,5,6]
+p a[..2] #=>[1,2,3]
+p a[...2] #=>[1,2]
 ```
 
 ## dup clone違い

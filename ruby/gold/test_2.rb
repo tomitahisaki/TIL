@@ -914,41 +914,41 @@
 
 # Baz.new.method_a
 # 
-# class Foo
-  # private
-  # def private_method1
-    # puts "private_method1"
-  # end
-# 
-  # def private_method2
-    # puts "private_method2"
-  # end
-# 
-  # protected
-  # def protected_method1
-    # puts "protected_method1"
-  # end
-# 
-  # def protected_method2
-    # puts "protected_method2"
-  # end
-# end
-# 
-# class Baz < Foo
-  # public :private_method2, :protected_method2
-  # def public_method_from_private
-    # private_method1
-  # end
-# 
-  # def public_method_from_protected
-    # protected_method1
-  # end
-# end
-# 
-# Baz.new.public_method_from_private
-# Baz.new.private_method2
-# Baz.new.public_method_from_protected
-# Baz.new.protected_method2
+class Foo
+  private
+  def private_method1
+    puts "private_method1"
+  end
+
+  def private_method2
+    puts "private_method2"
+  end
+
+  protected
+  def protected_method1
+    puts "protected_method1"
+  end
+
+  def protected_method2
+    puts "protected_method2"
+  end
+end
+
+class Baz < Foo
+  public :private_method2, :protected_method2
+  def public_method_from_private
+    private_method1
+  end
+
+  def public_method_from_protected
+    protected_method1
+  end
+end
+
+Baz.new.public_method_from_private
+Baz.new.private_method2
+Baz.new.public_method_from_protected
+Baz.new.protected_method2
 
 # A = 10
 # module M 
@@ -1388,3 +1388,12 @@
 # v1 = 1 / 2 == 0
 # v2 = !!v1 or raise RuntimeError # || だとエラー
 # puts v2 and false # && とすると false
+
+# def round(n, **option)
+#   n.round(**option)
+#   # p option #=>{:half=>:even}
+#   # p **option #=>{:half=>:even}
+# end
+# params = {half: :even}
+# p round(2, **params)
+
