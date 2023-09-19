@@ -347,11 +347,12 @@
 # puts "End"
 
 # class MyError1 < StandardError; end
+# class MyError2 < MyError1; end
 
 # begin
-#   raise MyError1
+#   raise MyError2
 # rescue => e
-#   puts "StandardError!!"
+#   puts e.class
 # end
 # puts "End"
 
@@ -914,41 +915,41 @@
 
 # Baz.new.method_a
 # 
-class Foo
-  private
-  def private_method1
-    puts "private_method1"
-  end
+# class Foo
+#   private
+#   def private_method1
+#     puts "private_method1"
+#   end
 
-  def private_method2
-    puts "private_method2"
-  end
+#   def private_method2
+#     puts "private_method2"
+#   end
 
-  protected
-  def protected_method1
-    puts "protected_method1"
-  end
+#   protected
+#   def protected_method1
+#     puts "protected_method1"
+#   end
 
-  def protected_method2
-    puts "protected_method2"
-  end
-end
+#   def protected_method2
+#     puts "protected_method2"
+#   end
+# end
 
-class Baz < Foo
-  public :private_method2, :protected_method2
-  def public_method_from_private
-    private_method1
-  end
+# class Baz < Foo
+#   public :private_method2, :protected_method2
+#   def public_method_from_private
+#     private_method1
+#   end
 
-  def public_method_from_protected
-    protected_method1
-  end
-end
+#   def public_method_from_protected
+#     protected_method1
+#   end
+# end
 
-Baz.new.public_method_from_private
-Baz.new.private_method2
-Baz.new.public_method_from_protected
-Baz.new.protected_method2
+# Baz.new.public_method_from_private
+# Baz.new.private_method2
+# Baz.new.public_method_from_protected
+# Baz.new.protected_method2
 
 # A = 10
 # module M 
@@ -1041,10 +1042,10 @@ Baz.new.protected_method2
   # p C.new.methods.include? :initialize
 
 # /(http:\/\/www(\.)(.*)\/)/ =~ "http://www.abc.com/"
-# p $0
-# p $1
-# p $2
-# p $3
+# p $0 # ファイル名
+# p $1 # １つ目のグループ http://www.abc.com/
+# p $2 # .
+# p $3 # abc.com
 
 # class Stack
 #   def initialize
@@ -1138,28 +1139,40 @@ Baz.new.protected_method2
 # # b: silver
 
 # a, b = catch :exit do
-  # for x in 1..10
-    # for y in 1..10
-      # return [x, y] if x + y == 10
-    # end
-  # end
+#   for x in 1..10
+#     for y in 1..10
+#       throw :exit, [x, y] if x + y == 10
+#     end
+#   end
 # end
+# puts a, b
 
 # a, b = catch :exit do
-  # for x in 1..10
-    # for y in 1..10
-      # break [x, y] if x + y == 10
-    # end
-  # end
+#   for x in 1..10
+#     for y in 1..10
+#       return [x, y] if x + y == 10
+#     end
+#   end
 # end
+# puts a, b
 
 # a, b = catch :exit do
-  # for x in 1..10
-    # for y in 1..10
-      # next [x, y] if x + y == 10
-    # end
-  # end
+#   for x in 1..10
+#     for y in 1..10
+#       break [x, y] if x + y == 10
+#     end
+#   end
 # end
+# puts a, b
+
+# a, b = catch :exit do
+#   for x in 1..10
+#     for y in 1..10
+#       next [x, y] if x + y == 10
+#     end
+#   end
+# end
+# puts a,b
 
 # class Foo
   # def self.const_missing(name)
@@ -1397,3 +1410,17 @@ Baz.new.protected_method2
 # params = {half: :even}
 # p round(2, **params)
 
+# class C
+  # def f; puts "World"; end
+# end
+# 
+# class Child < C
+  # def f; puts "Hello"; end
+# end
+# 
+# child = Child.new
+# puts child.f
+# 
+# Child.class_eval { remove_method :f }
+# 
+# puts child.f
