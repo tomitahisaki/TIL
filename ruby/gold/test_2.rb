@@ -448,16 +448,17 @@
 # $o =self
 # class MyClass
   # $a = self
-  # def b
+  # def hoge
     # $b = self
   # end
 # end
-# $c = MyClass.new
+# c = MyClass.new
 # p $a #=> MyClass
 # p $o #=> main (Objectクラス)
-# p $c.b
+# p $b == c # false
+# c.hoge # $b にオブジェクトの情報が入る
 # p $a == $o # false
-# p $b == $c #=> true
+# p $b == c #=> true
 
 
 # class C
@@ -1424,3 +1425,4 @@
 # Child.class_eval { remove_method :f }
 # 
 # puts child.f
+
