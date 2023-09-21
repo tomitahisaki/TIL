@@ -832,3 +832,46 @@ p result #=> #<MatchData "Bibbidi-Bobbidi-">
 
 p /(B.bbidi-)+/.match("Bibbidi-Bobbidi-Boo") #=> #<MatchData "Bibbidi-Bobbidi-" 1:"Bobbidi-">
 ```
+
+## 継承 レキシカルスコープ
+よく間違える継承について
+
+ネストしている部分は名前空間だけなので、継承しているわけではないことに注意!!
+
+定数を探しているときは、ネストした中も最初に探す。その後で、継承順に探していく！
+
+```
+class Ca
+  CONST = "001"
+end
+
+class Cb
+  CONST = "010"
+end
+
+class Cc
+  CONST = "011"
+end
+
+class Cd
+  CONST = "100"
+end
+
+module M1
+  class C0 < Ca
+    p self.ancestors
+    class C1 < Cc
+      p self.ancestors
+      class C2 < Cd
+        p self.ancestors
+
+        class C2 < Cb
+        end
+      end
+    end
+  end
+end
+# => [M1::C0, Ca, Object, Kernel, BasicObject]
+# => [M1::C0::C1, Cc, Object, Kernel, BasicObject]
+# => [M1::C0::C1::C2, Cd, Object, Kernel, BasicObject]
+```
