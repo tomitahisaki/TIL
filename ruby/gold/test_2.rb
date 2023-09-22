@@ -1420,9 +1420,27 @@
 # end
 # 
 # child = Child.new
-# puts child.f
+# puts child.
 # 
 # Child.class_eval { remove_method :f }
 # 
 # puts child.f
 
+# def bar(*ary, key: "default", **params)
+#   p key
+#   p ary
+#   p params
+# end
+
+# def foo(...)
+#   bar(...)
+# end
+
+# foo(*[1,2,3], key: "value", broodtype: "o")
+
+# p /(B.bbidi-)+/.scan("Bibbidi-Bobbidi-Boo") #=> #<MatchData "Bibbidi-Bobbidi-" 1:"Bobbidi-">
+# p "Bibbidi-Bobbidi-Boo".scan(/B.bbidi-/) #=> ["Bibbidi-", "Bobbidi-"]
+
+# p Object.constants
+# p Object.const_defined?(:ENV)
+# p Object.const_get(:RUBY_VERSION)

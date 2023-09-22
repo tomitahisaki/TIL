@@ -1,6 +1,4 @@
 # 再受験のための勉強
-## 正規表現
-
 ## 例外処理
 Exceptionを継承したエラーは捕捉されない
 
@@ -231,6 +229,21 @@ end
 foo(1,2)
 ```
 
+可変長引数とハッシュ、オプション引数のような受渡しもできる
+```
+def bar(*ary, key: "default", **params)
+  p key
+  p ary
+  p params
+end
+
+def foo(...)
+  bar(...)
+end
+
+foo(*[1,2,3], key: "value", broodtype: "o")
+```
+
 ## protected private
 レシーバありでも、内部で異なるインスタンスでも呼び出せるのが`protected`の特徴
 ```
@@ -256,7 +269,7 @@ end
 Hoge.new.func
 ```
 
-レシーバありであれば、どちらも可能
+レシーバ(self)ありであれば、どちらも可能
 ```
 class Hoge
   def func
@@ -601,13 +614,14 @@ sample_a { puts 'I am a block' }
 ```
 
 ## append_features
-いつ読み込まれているのかと、superを書かないとエラーになる
+いつ読み込まれているのかと、superを書かないと読み込まれない
+
 ```
 module M
-  def self.append_features(include_class_name)
-    p C.ancestors #=> [C, Object, Kernel, BasicObject]
-    super # このsuperを書かないとエラー発生
-    p C.ancestors #=> [C, M, Object, Kernel, BasicObject]
+  def self.append_features(klass)
+    p klass.ancestors #=> [C, Object, Kernel, BasicObject]
+    super # このsuperを書かないと読み込まれない。
+    p klass.ancestors #=> [C, M, Object, Kernel, BasicObject]
   end
   
   def func
@@ -831,6 +845,14 @@ result = /B.bbidi-B.bbidi-/.match("Bibbidi-Bobbidi-Boo")
 p result #=> #<MatchData "Bibbidi-Bobbidi-">
 
 p /(B.bbidi-)+/.match("Bibbidi-Bobbidi-Boo") #=> #<MatchData "Bibbidi-Bobbidi-" 1:"Bobbidi-">
+
+p "Bibbidi-Bobbidi-Boo".scan(/B.bbidi-/) #=> ["Bibbidi-", "Bobbidi-"]
+```
+
+```
+p /a+/.match("aaab") # 貪欲マッチング
+p /a+?/.match("aaab") # 最小一致 非貪欲マッチング 
+p /a?+/.match("aaab") # 意味をなさない構文。結果は最小一致と同じ
 ```
 
 ## 継承 レキシカルスコープ
@@ -874,4 +896,20 @@ end
 # => [M1::C0, Ca, Object, Kernel, BasicObject]
 # => [M1::C0::C1, Cc, Object, Kernel, BasicObject]
 # => [M1::C0::C1::C2, Cd, Object, Kernel, BasicObject]
+```
+
+## freeze
+`<<`のときは破壊的メソッドになる。idが変化していないことがわかる。
+
+`+=`の場合は、非破壊メソッド。idを見ると、変化しているので、別の変数扱い
+```
+var = "a".freeze
+p var.object_id
+ var << "as"
+p var.object_id # frozen error
+
+var = "a".freeze
+p var.object_id
+ var += "as"
+p var.object_id 
 ```
