@@ -785,6 +785,66 @@ p Stack.instance_methods #  class_evalを使用すると、インスタンスメ
 p Stack.methods # instance_evalをクラス内で使用すると、特異メソッド定義となるので、こちらに追加される
 ```
 
+## class_eval
+インスタンスメソッドを定義可能
+
+定数の探索順位もわかった。
+```
+class A; end
+m = A.new
+
+CONST = "Constant in Toplevel"
+
+_proc = Proc.new do
+  CONST = "Constant in Proc"
+end
+
+A.class_eval(<<-EOS)
+  CONST = "Constant in Module instance"
+
+  def const
+    CONST
+  end
+EOS
+
+A.class_eval(&_proc)
+
+p m.const
+# コメントアウトしてくと分かったこと
+# 優先順位1: "Constant in Module instance"
+# 優先順位2: "Constant in Proc"
+# 優先順位3: "Constant in Toplevel"
+```
+
+## instance_eval
+メソッドを定義するときは、インスタンスに対して行うこと!
+
+selfの部分をクラスにしても、インスタンスメソッドを生成しない。
+
+定数の探索順位は、class_evalと同様
+```
+class A; end
+m = A.new
+
+CONST = "Constant in Toplevel"
+
+_proc = Proc.new do
+  CONST = "Constant in Proc"
+end
+
+m.instance_eval(<<-EOS)
+  # CONST = "Constant in Module instance"
+
+  def const
+    CONST
+  end
+EOS
+
+A.instance_eval(&_proc)
+
+p m.const
+```
+
 ## catch throw
 基本的に、`throw :exit [x, y]`としたいが、下記のような脱出構文でもエラーは発生しなかった。
 
@@ -883,8 +943,10 @@ module M1
   class C0 < Ca
     p self.ancestors
     class C1 < Cc
+      p CONST # 011
       p self.ancestors
       class C2 < Cd
+        p CONST # 100
         p self.ancestors
 
         class C2 < Cb
@@ -896,6 +958,31 @@ end
 # => [M1::C0, Ca, Object, Kernel, BasicObject]
 # => [M1::C0::C1, Cc, Object, Kernel, BasicObject]
 # => [M1::C0::C1::C2, Cd, Object, Kernel, BasicObject]
+```
+
+# よく間違えるところ
+```
+module M1
+  class C0 < Ca
+    p self.ancestors
+    class C1 < Cc
+      p CONST
+      p self.ancestors
+      class C2 < Cd
+        p CONST
+        p self.ancestors
+
+        class C2 < Cb
+        end
+      end
+    end
+  end
+end
+# => [M1::C0, Ca, Object, Kernel, BasicObject]
+# => "011"
+# => [M1::C0::Cd, Cc, Object, Kernel, BasicObject]
+# => "011"
+# => [M1::C0::Cd::C2, M1::C0::Cd, Cc, Object, Kernel, BasicObject]
 ```
 
 ## freeze
@@ -912,4 +999,63 @@ var = "a".freeze
 p var.object_id
  var += "as"
 p var.object_id 
+```
+
+## 複数の引数の定義
+複数の引数の場合は、順番に注意！！！
+
+特に通常引数は、オプションハッシュの前に置くとエラーとなる
+
+- 通常の引数
+- デフォルト式付き引数
+- 可変長引数
+- 通常の引数
+- キーワード引数
+- デフォルト式付きキーワード引数
+- オプションハッシュ
+- ブロック引数
+```
+def method(a, b = 1, *c, d, e:, f: 2, **g, &h)
+  return a, b, c, d, e, f, g, h
+  end
+p method(0, 1, 2, 3, e:4, f:5, g:6) { 7 }
+```
+
+## Refinement 
+厳密なレキシカルスコープで動作する！
+
+```
+module Extensions1
+  refine String do
+    def hello
+      puts self + "hello Extensions1"
+    end
+    def hi
+      puts self + "hi Extension1"
+    end
+  end
+end
+
+module Extensions2
+  refine String do
+    def hello 
+      puts self + "hello Extensions2"
+    end
+  end
+end
+
+class RefineTest
+  using Extensions1
+  "outer1".hello # => outer1 hello Extensions1
+  
+  class InnerClass
+    using Extensions2
+    # innerClass内のみで変更が適用される
+    "inner".hello # => inner hello Extensions2
+    "outer2".hi # => outer2 hi Extensions1
+  end
+  
+  "outer2".hello # => outer2 hello Extensions1
+  "outer2".hi # => outer2 hi Extensions1
+end
 ```

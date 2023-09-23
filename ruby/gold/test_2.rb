@@ -1444,3 +1444,73 @@
 # p Object.constants
 # p Object.const_defined?(:ENV)
 # p Object.const_get(:RUBY_VERSION)
+
+# def foo(arg1=100, *args)
+#   puts arg1
+#   puts *args
+# end
+
+# args = [200, 900]
+
+# foo(*args)
+# class A; end
+# m = A.new
+
+# CONST = "Constant in Toplevel"
+
+# _proc = Proc.new do
+#   CONST = "Constant in Proc"
+# end
+
+# m.instance_eval(<<-EOS)
+#   # CONST = "Constant in Module instance"
+
+#   def const
+#     CONST
+#   end
+# EOS
+
+# A.instance_eval(&_proc)
+
+# p m.const
+
+# 複数の引数の場合は、順番に注意！！！
+# def method(a, b = 1, *c, d, e:, f: 2, **g, &h)
+#   return a, b, c, d, e, f, g, h
+#   end
+# p method(0, 1, 2, 3, e:4, f:5, g:6) { 7 }
+
+# module Extensions1
+#   refine String do
+#     def hello
+#       puts self + "hello Extensions1"
+#     end
+#     def hi
+#       puts self + "hi Extension1"
+#     end
+#   end
+# end
+
+# module Extensions2
+#   refine String do
+#     def hello 
+#       puts self + "hello Extensions2"
+#     end
+#   end
+# end
+
+# class RefineTest
+#   us@ing Extensions1
+#   "outer1".hello # => outer1 hello Extensions1
+  
+#   class InnerClass
+#     using Extensions2
+#     # innerClass内のみで変更が適用される
+#     "inner".hello # => inner hello Extensions2
+#     "outer2".hi # => outer2 hi Extensions1
+#   end
+  
+#   "outer2".hello # => outer2 hello Extensions1
+#   "outer2".hi # => outer2 hi Extensions1
+# end
+p "Matz is my tEacher".scan(/[A-Za-z]\w+/)
