@@ -1513,29 +1513,5 @@
 #   "outer2".hello # => outer2 hello Extensions1
 #   "outer2".hi # => outer2 hi Extensions1
 # end
-A = 10
-module M 
-  A = 1
-  class B
-    A = 2
-  end
-  class C
-    def const
-      A
-    end
 
-    def const_b
-      B::A
-    end
-    
-    def const_top
-      ::A
-    end
-  end
-end
-
-p M::A # 1
-p M::B::A # 2
-p M::C.new.const # 1
-p M::C.new.const_b # 2
-p M::C.new.const_top # 10
+[[1, "Foo"], [2, "bar"], [3, "baz"]].map { _1 * 2 } # [10, 20, 30]
