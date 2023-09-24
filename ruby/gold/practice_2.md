@@ -464,11 +464,11 @@ module M
   end
 end
 
-p M::A
-p M::B::A
-p M::C.new.const
-p M::C.new.const_b
-p M::C.new.const_top
+p M::A # 1
+p M::B::A # 2
+p M::C.new.const # 1
+p M::C.new.const_b # 2
+p M::C.new.const_top # 10
 ```
 
 ## 文法
@@ -961,6 +961,7 @@ end
 ```
 
 # よく間違えるところ
+ネストと継承は異なることに注意すること！
 ```
 module M1
   class C0 < Ca
@@ -1052,6 +1053,7 @@ class RefineTest
     using Extensions2
     # innerClass内のみで変更が適用される
     "inner".hello # => inner hello Extensions2
+    # ネストしていても、Extension1は呼び出し可能
     "outer2".hi # => outer2 hi Extensions1
   end
   
