@@ -191,7 +191,7 @@
 #   end
 # end
 
-# module M
+# module M 
 #   class C
 #     CONST = "Hello, world"
 #     p Module.nesting
@@ -1514,4 +1514,8 @@
 #   "outer2".hi # => outer2 hi Extensions1
 # end
 
-[[1, "Foo"], [2, "bar"], [3, "baz"]].map { _1 * 2 } # [10, 20, 30]
+# p Class.method_defined? :new # true
+# p String.method_defined? :new # false
+# p Class.singleton_class.method_defined? :new # true
+# p String.singleton_class.method_defined? :new # true
+
