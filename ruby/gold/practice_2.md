@@ -41,6 +41,17 @@ rescue => e
   puts "OK"
 end
 ```
+継承には気をつけること `Err1`を`resuce`するが、サブクラスが存在しているので、サブクラスが出力される
+```
+class Err1 < StandardError; end
+class Err2 < Err1; end
+begin
+  raise Err2
+rescue Err1 => e
+  p e.class
+end
+# Err2
+```
 
 ### ensureの処理
 `ensure`が先に評価されてから通常処理が返される。
@@ -57,22 +68,31 @@ def m
    puts "ensure"
    2
   end
- end
- p m
- # begin
- # ensure
- # 1
+end
+p m
+# begin
+# ensure
+# 1
 
- def greeting
-  "hello"
-ensure
-  puts "Ensure called!"
+def greeting
+    "hello"
+  ensure
+    puts "Ensure called!"
 
-  "hi"
+    "hi"
 end
 puts greeting
 # Ensure called!
 # hello
+
+これが一番わかり易いたとえ？
+def greeting
+    "hello"
+  ensure
+    "hi"
+end
+put greeting
+"hello"
 ```
 
 `ensure`と`else`がある場合、出力は`else`が優先される。ensureも実行されているが、評価としては無視される。
@@ -252,6 +272,19 @@ def foo(...)
 end
 
 foo(*[1,2,3], key: "value", broodtype: "o")
+```
+極論、こういうことも可能！
+```
+def foo(a, b, c = 3, d = 4, *ef, g, h, i: 9, j: 10, **kl, &m)
+  "a: #{a}, b: #{b}, c: #{c}, d: #{d}, ef: #{ef}, g: #{g}, h: #{h}, i: #{i}, j: #{j}, kl: #{kl}, h: #{m}"
+end
+
+def bar(...)
+  foo(...)
+end
+
+p bar(1, 2, 3, 4, 5, 6, 7, 8, i: 9, j: 10, k: 11, l: 12,){ 13 }
+# "a: 1, b: 2, c: 3, d: 4, ef: [5, 6], g: 7, h: 8, i: 9, j: 10, kl: {:k=>11, :l=>12}, h: #<Proc:0x000000010472c928 test_2.rb:1547>"
 ```
 
 ## protected private
@@ -566,6 +599,9 @@ p A.x   #=> a b e c 3
 ```
 
 ## undef
+メソッドを未定義にして呼び出せなくする。 サブクラスで未定義にした場合は、 呼び出せなくなる
+
+親クラスのメソッドには影響しないものの、未定義にすることで、親クラスの同名メソッドも呼び出せない
 ```
 class Bar < Foo
  def foo
@@ -577,7 +613,6 @@ end
 puts Bar.new.bar #=> foobar 
 aliasとundef順が逆だと、nomethoderrorになる
 ```
-
 使うと呼び出したクラスとサブクラスでメソッドを呼び出せなくなる。
 ```
 class C
@@ -594,7 +629,27 @@ end
 C.new.func # => Hello
 # Child.new.func # => NoMethodError
 # GrandChild.new.func # => NoMethodError
+```
 
+## remove_method
+undef とは異なる。メソッドを削除する。削除できるのは、親クラスの同名メソッドは削除しない。
+
+そのため、削除したメソッドと同名メソッドが親クラスにある場合は、そちらが呼ばれるようになる
+```
+class C
+    def f; puts "World"; end
+end
+
+class Child < C
+    def f; puts "Hello"; end
+end
+
+child = Child.new
+puts child.f # Hello
+
+Child.class_eval { remove_method :f }
+
+puts child.f # World
 ```
 
 ## ブロックを渡すには
@@ -1098,4 +1153,179 @@ class RefineTest
   "outer2".hello # => outer2 hello Extensions1
   "outer2".hi # => outer2 hi Extensions1
 end
+```
+
+
+## 引数に気をつける 
+initializeが呼ばれたときに、引数のオブジェクトによって処理が開始される際は気をつける
+
+```
+class Foo
+  def initialize(obj)
+   obj.foo
+  end
+  def foo
+   puts "foofoofoo"
+  end
+ end
+ class Bar
+  def foo
+   puts "barbarbar"
+  end
+ end
+ Foo.new(Bar.new) # barbarbar
+
+class Bar
+  def foo
+    puts "barbarbar"
+  end
+end
+class Foo < Bar
+  def initialize(obj)
+    obj.foo
+  end
+  def foo
+    puts "foofoofoo"
+  end
+end
+Foo.new(Foo.new(Bar.new))
+# barbarbar
+# foofoofoo
+```
+
+## moduleをmixinする
+`module`の特異メソッド、`class`の特異メソッドとして場合は、下記のようにするとできる
+
+```
+module Mixin
+  extend self
+  def greet
+    "Hello World!"
+  end
+end
+
+class SomeClass
+  extend Mixin
+end
+
+p Mixin.greet # Hello World!
+p SomeClass.greet # Hello World!
+```
+
+## return break nextの違い
+`return`はメソッドからぬける
+
+`break`はスコープからぬける
+
+`next`処理中断し、次の処理を実行する
+
+```
+def foo
+  [1,2,3].each do |i|
+    break if i == 2
+    p i
+  end
+  p "out of scope within method"
+end
+foo
+# 1
+# out of scope within method
+
+def foo
+  [1,2,3].each do |i|
+    return if i == 2
+    p i
+  end
+  p "out of scope within method"
+end
+foo
+# 1
+
+def foo
+  [1,2,3].each do |i|
+    next if i == 2
+    p i
+  end
+  p "out of scope within method"
+end
+foo
+# 1
+# 3
+# out of scope within method
+```
+
+## p puts print の違い
+よくわかっていない部分
+
+```
+class C
+  def initialize(str)
+    @str = str
+  end
+  
+  def inspect
+    "inspect"
+  end
+  
+  def to_s
+    "to_s"
+  end
+  
+  def to_str
+    "to_str"
+  end
+end
+
+p C.new ""             # => inspect
+p "#{ C.new("") }"     # => "to_s"
+p "" + C.new("")       # => "to_str"
+
+puts C.new ""          # => to_s
+puts "#{ C.new("") }"  # => to_s
+puts "" + C.new("")    # => to_str
+
+print C.new ""         # => to_s
+print "#{ C.new("") }" # => to_s
+print "" + C.new("")   # => to_str
+```
+
+## superの引数
+
+```
+class A
+  def initialize(*rest)
+    puts "*rest=#{rest}"
+  end
+end
+
+class B < A
+  def initialize(first, *rest)
+    # 第一引数を表示
+    puts "first1=#{first}"
+    # 第二引数以降を表示
+    puts "rest1=#{rest}"
+    # initializeと同じ引数でclass Aのinitializeを呼び出す
+    super
+    # 明示的に引数なしを指定すると引数なしでclass Aのinitializeを呼び出せる
+    super()
+  end
+end
+
+obj1 = B.new("A","B","C","D","E")
+
+#=> first1=A
+#=> rest1=["B", "C", "D", "E"]
+#=> *rest=["A", "B", "C", "D", "E"]
+#=> *rest=[]
+```
+
+## newメソッドの定義位置
+Classクラスのインスタンスでは、Classクラスのインスタンスメソッドの`new`を使用します。
+
+StringはClassクラスのインスタンスなので、Classのインスタンスメソッドを使う
+```
+p Class.method_defined? :new #=> ture
+p String.method_defined? :new #=> false
+p Class.singleton_class.method_defined? :new #=> ture
+p String.singleton_class.method_defined? :new #=> ture
 ```

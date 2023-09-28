@@ -1519,3 +1519,95 @@
 # p Class.singleton_class.method_defined? :new # true
 # p String.singleton_class.method_defined? :new # true
 
+
+# class Err1 < StandardError; end
+# class Err2 < Err1; end
+# begin
+#   raise Err2
+# rescue Err1 => e
+#   p e.class
+# end
+
+
+# def greeting
+  # "hello"
+# ensure
+  # "hi"
+# end 
+# puts greeting
+
+# def foo(a, b, c = 3, d = 4, *ef, g, h, i: 9, j: 10, **kl, &m)
+#   "a: #{a}, b: #{b}, c: #{c}, d: #{d}, ef: #{ef}, g: #{g}, h: #{h}, i: #{i}, j: #{j}, kl: #{kl}, h: #{m}"
+# end
+
+# def bar(...)
+#   foo(...)
+# end
+
+# p bar(1, 2, 3, 4, 5, 6, 7, 8, i: 9, j: 10, k: 11, l: 12,){ 13 }
+
+# class Foo
+#   def initialize(obj)
+#    obj.foo
+#   end
+#   def foo
+#    puts "foofoofoo"
+#   end
+#  end
+#  class Bar
+#   def foo
+#    puts "barbarbar"
+#   end
+#  end
+#  Foo.new(Bar.new) # barbarbar
+
+# class Bar
+#   def foo
+#     puts "barbarbar"
+#   end
+# end
+# class Foo < Bar
+#   def initialize(obj)
+#     obj.foo
+#   end
+#   def foo
+#     puts "foofoofoo"
+#   end
+# end
+# Foo.new(Foo.new(Bar.new))
+# # barbarbar
+# # foofoofoo
+
+# def foo
+#   [1,2,3].each do |i|
+#     break if i == 2
+#     p i
+#   end
+#   p "out of scope within method"
+# end
+# foo
+# # 1
+# # out of scope within method
+
+# def foo
+#   [1,2,3].each do |i|
+#     return if i == 2
+#     p i
+#   end
+#   p "out of scope within method"
+# end
+# foo
+# # 1
+
+# def foo
+#   [1,2,3].each do |i|
+#     next if i == 2
+#     p i
+#   end
+#   p "out of scope within method"
+# end
+# foo
+# # 1
+# # 3
+# # out of scope within method
+
