@@ -1611,3 +1611,11 @@
 # # 3
 # # out of scope within method
 
+class MyError2 < Exception; end
+
+begin
+  raise MyError2
+rescue => e
+  puts "Exception!!"
+end
+puts "End"

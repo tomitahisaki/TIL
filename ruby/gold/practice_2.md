@@ -12,6 +12,7 @@ rescue => e
   puts "Exception!!"
 end
 puts "End"
+# MyError2
 ```
 
 StandardErrorを継承したエラー捕捉される
@@ -1328,4 +1329,30 @@ p Class.method_defined? :new #=> ture
 p String.method_defined? :new #=> false
 p Class.singleton_class.method_defined? :new #=> ture
 p String.singleton_class.method_defined? :new #=> ture
+```
+
+## クラスメソッドとインスタンスメソッドの確認
+```
+class Foo
+  @@var = 1
+  def self.class_method
+    @@var
+  end
+  def instance_method
+    @var = 1
+  end
+end
+
+# インスタンスオブジェクトを参照
+foo = Foo.new
+foo.instance_method
+foo.instance_variables # => [:@var]
+
+# クラスを参照
+Foo.class_variables # => [:@@var]
+Foo.instance_methods(false) # => [:instance_method]
+# Fooクラスにはclass_methodsメソッドが存在しない。クラスメソッドは特異クラスに定義される
+Foo.class_methods(false) # => NoMethodError: undefined method `class_methods' for Foo:Class
+# 特異クラスのメソッドを参照するにはクラスの特異メソッドを確認
+Foo.singleton_methods(false) #=> [:class_method]
 ```
