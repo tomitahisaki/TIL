@@ -251,3 +251,9 @@ UMLでシステムの振る舞いを表現する図
 
 ## 技術基準適合証明
 電波を発信する機器が、電波方で定められた条件に適合していることを証明する
+
+## 4P(売り手) 4C(買い手)
+- Product: Customer value
+- Price: Cost
+- Place: Convenience
+- Promotion: Communication
