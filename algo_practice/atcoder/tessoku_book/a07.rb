@@ -14,4 +14,3 @@ days.times do |i|
   people_count += days_people[i] # 参加者の累積和を求める
   puts people_count
 end
-
