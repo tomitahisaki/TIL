@@ -18,7 +18,6 @@ abcd.each do |a, b, c, d|
 end
 
 area.each do |row|
-puts row.join(' ')
+puts row.join('') 
 end
-
 
